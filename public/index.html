@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Financiero - Técnico Rojas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme">
+  
+  <!-- LIENZO DE FONDO ANIMADO -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- BARRA SUPERIOR ESQUINA IZQUIERDA -->
+  <nav class="top-bar-left">
+    <button id="btn-global-home" class="btn-topbar">
+      🏠 <span>INICIO</span>
+    </button>
+    <button id="btn-theme-toggle" class="btn-topbar">
+      🌙 <span id="theme-text">MODO CLARO</span>
+    </button>
+  </nav>
+
+  <div class="main-wrapper">
+    <!-- Encabezado Principal -->
+    <header class="hero-header">
+      <span class="badge">SISTEMA CONTROL PRIVADO</span>
+      <h1 class="title-gradient">CONTROL FINANCIERO</h1>
+      <p class="subtitle welcome-text">BIENVENIDO TÉCNICO ROJAS</p>
+      <p class="subtitle">Gestiona tus movimientos con rapidez</p>
+    </header>
+
+    <!-- MENÚ DE CUADRITOS TIPO GRID -->
+<section id="menu-grid" class="dashboard-grid">
+  
+  <!-- 1. INGRESO DE PAGO -->
+  <button class="grid-card" data-target="mod-ingreso-pago">
+    <div class="card-icon">💳</div>
+    <div class="card-info">
+      <h3>INGRESO DE PAGO</h3>
+      <p>Registrar abonos e ingresos</p>
+    </div>
+  </button>
+
+  <!-- 2. CREAR PRESTAMO -->
+  <button class="grid-card" data-target="mod-crear-prestamo">
+    <div class="card-icon">🤝</div>
+    <div class="card-info">
+      <h3>CREAR PRESTAMO</h3>
+      <p>Generar un nuevo préstamo o crédito</p>
+    </div>
+  </button>
+
+  <!-- 3. ALERTAS DE COBRANZA -->
+  <button class="grid-card card-alert" data-target="mod-cobranza">
+    <div class="card-icon">🚨</div>
+    <div class="card-info">
+      <h3>ALERTAS COBRANZA</h3>
+      <p>Cuotas del día y clientes en mora</p>
+    </div>
+  </button>
+
+  <!-- 4. CONSULTA FINANCIERO -->
+  <button class="grid-card" data-target="mod-consulta-financiero">
+    <div class="card-icon">📊</div>
+    <div class="card-info">
+      <h3>CONSULTA FINANCIERO</h3>
+      <p>Ver balances, totales y reportes</p>
+    </div>
+  </button>
+
+  <!-- 5. GESTIÓN DE CLIENTES -->
+  <button class="grid-card" data-target="mod-buscar-cliente">
+    <div class="card-icon">🔍</div>
+    <div class="card-info">
+      <h3>GESTIÓN DE CLIENTES</h3>
+      <p>Buscar, registrar y modificar clientes</p>
+    </div>
+  </button>
+
+  <!-- 6. GRÁFICOS Y ANALÍTICA -->
+  <button class="grid-card" data-target="mod-graficos">
+    <div class="card-icon">📈</div>
+    <div class="card-info">
+      <h3>GRÁFICOS Y ANALÍTICA</h3>
+      <p>Métricas de ingresos e historial visual</p>
+    </div>
+  </button>
+
+</section>
+
+    <!-- SECCIÓN DE MÓDULOS ACTIVOS -->
+    <main id="content-area">
+
+      <!-- Módulo 1: Ingreso de Pago -->
+      <div id="mod-ingreso-pago" class="glass-module hidden">
+        <h2>💳 INGRESO DE PAGO</h2>
+        <form id="form-ingreso-pago" class="styled-form">
+          <div class="form-group">
+            <label for="monto-pago">Monto (s/)</label>
+            <input type="number" id="monto-pago" step="0.01" placeholder="Ej. 500.00" required>
+          </div>
+          <div class="form-group">
+            <label for="cliente-pago">Cliente / Concepto</label>
+            <input type="text" id="cliente-pago" placeholder="Ej. Juan Pérez - Cuota 1" required>
+          </div>
+          <button type="submit" class="btn-primary">Registrar Pago</button>
+        </form>
+      </div>
+
+      <!-- Módulo 2: Crear Préstamo -->
+      <div id="mod-crear-prestamo" class="glass-module hidden">
+        <h2>🤝 CREAR PRESTAMO</h2>
+        <form id="form-prestamo" class="styled-form">
+          <div class="form-group">
+            <label for="cliente-prestamo">Nombre del Cliente</label>
+            <input type="text" id="cliente-prestamo" placeholder="Ej. María López" required>
+          </div>
+          <div class="form-group">
+            <label for="monto-prestamo">Monto Prestado (s/)</label>
+            <input type="number" id="monto-prestamo" step="0.01" placeholder="Ej. 1000.00" required>
+          </div>
+          <button type="submit" class="btn-primary">Guardar Préstamo</button>
+        </form>
+      </div>
+
+      <!-- Módulo 3: Consulta Financiero -->
+      <div id="mod-consulta-financiero" class="glass-module hidden">
+        <h2>📊 CONSULTA FINANCIERO</h2>
+        <div class="stats-container">
+          <div class="stat-box green">
+            <span>Total Recaudado</span>
+            <h3>s/0.00</h3>
+          </div>
+          <div class="stat-box blue">
+            <span>Total Préstamos</span>
+            <h3>s/0.00</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Módulo 4: Gestión de Clientes -->
+      <div id="mod-buscar-cliente" class="glass-module hidden">
+        <h2>🔍 GESTIÓN DE CLIENTES</h2>
+        <div class="search-wrapper">
+          <input type="text" placeholder="Buscar por Nombre, DNI o ID...">
+          <button type="button" class="btn-primary">Buscar</button>
+        </div>
+        <div class="client-actions" style="margin-top: 1.5rem;">
+          <button type="button" class="btn-primary" style="background: #10b981;">+ Nuevo Cliente</button>
+        </div>
+      </div>
+
+      <!-- Módulo 5: Gráficos y Analítica -->
+      <div id="mod-graficos" class="glass-module hidden">
+        <h2>📈 GRÁFICOS Y ANALISIS</h2>
+        <p class="subtitle" style="margin-bottom: 1.5rem;">Resumen de rendimiento y cartera financiera</p>
+        
+        <div class="charts-container">
+          <div class="chart-box">
+            <canvas id="chartBalance"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Módulo 6: Alertas de Cobranza -->
+<div id="mod-cobranza" class="glass-module hidden">
+  <h2>🚨 CONTROL DE COBRANZA Y VENCIMIENTOS</h2>
+  <p class="subtitle" style="margin-bottom: 1.5rem;">Listado prioritario para gestión del día</p>
+  
+  <div class="stats-container">
+    <div class="stat-box red">
+      <span>Cobros para Hoy</span>
+      <h3>0 Pendientes</h3>
+    </div>
+    <div class="stat-box yellow">
+      <span>En Demora</span>
+      <h3>s/0.00</h3>
+    </div>
+  </div>
+</div>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
