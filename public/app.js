@@ -345,6 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
+  // ==========================================================================
+  // MÓDULO 1: INGRESO DE PAGO (LÓGICA)
+  // ==========================================================================
   const selectCliente = document.getElementById('pago-cliente');
   const selectDeuda = document.getElementById('pago-prestamo-deuda');
   const inputCapitalRef = document.getElementById('pago-capital-ref');
@@ -358,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputFechaPago = document.getElementById('pago-fecha-efectiva');
   const inputGeneralFecha = document.getElementById('general-fecha');
 
-  // Asignar fecha actual por defecto en ambos formularios
+  // Fecha actual por defecto en pagos
   const hoyStr = new Date().toISOString().split('T')[0];
   if (inputFechaPago) inputFechaPago.value = hoyStr;
   if (inputGeneralFecha) inputGeneralFecha.value = hoyStr;
@@ -400,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputNuevoInteresFuturo) inputNuevoInteresFuturo.value = `S/ ${nuevoInteresMensualSoles.toFixed(2)} (${tasaMensual}% mes)`;
   }
 
-  // 1. Al cambiar de cliente -> Generar deudas con data-tasa
+  // 1. Al cambiar de cliente en pagos
   selectCliente?.addEventListener('change', (e) => {
     const clienteId = e.target.value;
     if (!selectDeuda) return;
@@ -414,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputNuevoSaldo) inputNuevoSaldo.value = '';
     if (inputNuevoInteresFuturo) inputNuevoInteresFuturo.value = '';
 
-    if (clienteId && prestamosPorCliente[clienteId]) {
+    if (typeof prestamosPorCliente !== 'undefined' && clienteId && prestamosPorCliente[clienteId]) {
       selectDeuda.disabled = false;
       prestamosPorCliente[clienteId].forEach(p => {
         const opt = document.createElement('option');
@@ -432,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 2. Al cambiar de deuda -> Cargar datos
+  // 2. Al cambiar de deuda
   selectDeuda?.addEventListener('change', (e) => {
     const opt = e.target.selectedOptions[0];
     if (opt && opt.value !== "") {
@@ -461,4 +464,281 @@ document.addEventListener('DOMContentLoaded', () => {
 
   inputMontoAbono?.addEventListener('input', recalcularOperacion);
 
-});
+  // ==========================================================================
+  // MÓDULO 2: CREAR PRÉSTAMO (LÓGICA LIMPIA)
+  // ==========================================================================
+  const selectCpCliente = document.getElementById('cp-cliente-select');
+  const inputCpDni = document.getElementById('cp-dni');
+  const inputCpCelular = document.getElementById('cp-celular');
+  const inputCpMonto = document.getElementById('cp-monto');
+  const inputCpFecha = document.getElementById('cp-fecha');
+  const inputCpInteres = document.getElementById('cp-interes');
+  const selectCpFrecuencia = document.getElementById('cp-frecuencia');
+  const selectCpCuotas = document.getElementById('cp-cuotas');
+  const inputCpVencimiento = document.getElementById('cp-fecha-vencimiento');
+  const inputCpTotalDevolver = document.getElementById('cp-total-devolver');
+  const inputCpEstimada = document.getElementById('cp-cuota-estimada');
+
+  const radiosModalidad = document.querySelectorAll('input[name="modalidad_pago"]');
+  const contenedorCuotas = document.getElementById('contenedor-cuotas');
+  const contenedorFrecuencia = document.getElementById('contenedor-frecuencia');
+  const contenedorResumenCuota = document.getElementById('contenedor-resumen-cuota');
+  const lblFechaVenc = document.getElementById('lbl-fecha-venc');
+
+  let clientesDB = [];
+
+  // Función para obtener clientes de la base de datos
+  async function cargarClientesEnSelector() {
+    if (!selectCpCliente) return;
+
+    try {
+      const res = await fetch('/api/clientes');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      clientesDB = await res.json();
+      selectCpCliente.innerHTML = '<option value="">-- Seleccione un cliente --</option>';
+
+      if (!Array.isArray(clientesDB) || clientesDB.length === 0) {
+        selectCpCliente.innerHTML = '<option value="">No hay clientes registrados</option>';
+        return;
+      }
+
+      clientesDB.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.nombre} `;
+        selectCpCliente.appendChild(opt);
+      });
+    } catch (err) {
+      console.error('Error al cargar clientes:', err);
+      selectCpCliente.innerHTML = '<option value="">Error al cargar clientes</option>';
+    }
+  }
+
+  // Autocompletar DNI y Celular al cambiar de cliente
+  selectCpCliente?.addEventListener('change', (e) => {
+    const seleccionado = clientesDB.find(c => String(c.id) === String(e.target.value));
+    if (seleccionado) {
+      if (inputCpDni) inputCpDni.value = seleccionado.dni || '';
+      if (inputCpCelular) inputCpCelular.value = seleccionado.telefono || 'Sin celular';
+    } else {
+      if (inputCpDni) inputCpDni.value = '';
+      if (inputCpCelular) inputCpCelular.value = '';
+    }
+  });
+
+  // Cálculo de fecha de vencimiento
+  function calcularProximoVencimiento() {
+    const fechaTexto = inputCpFecha?.value;
+    const fechaBase = fechaTexto ? new Date(fechaTexto + 'T00:00:00') : new Date();
+    const modalidad = document.querySelector('input[name="modalidad_pago"]:checked')?.value || 'PROGRAMADO';
+    let diasAgregar = 30;
+
+    if (modalidad === 'PROGRAMADO') {
+      const frec = selectCpFrecuencia?.value || 'MENSUAL';
+      if (frec === 'SEMANAL') diasAgregar = 7;
+      if (frec === 'QUINCENAL') diasAgregar = 15;
+    }
+
+    fechaBase.setDate(fechaBase.getDate() + diasAgregar);
+    if (inputCpVencimiento) inputCpVencimiento.value = fechaBase.toISOString().split('T')[0];
+  }
+
+  // Cálculo de Total a Devolver y Cuota
+  function calcularTotalesPrestamo() {
+    const capital = parseFloat(inputCpMonto?.value) || 0;
+    const tasa = parseFloat(inputCpInteres?.value) || 0;
+    const modalidad = document.querySelector('input[name="modalidad_pago"]:checked')?.value || 'PROGRAMADO';
+    const cuotas = modalidad === 'PAGO_UNICO' ? 1 : (parseInt(selectCpCuotas?.value, 10) || 1);
+
+    if (capital > 0) {
+      const interesTotal = capital * (tasa / 100);
+      const totalDevolver = capital + interesTotal;
+      const valorCuota = totalDevolver / cuotas;
+
+      if (inputCpTotalDevolver) inputCpTotalDevolver.value = `S/ ${totalDevolver.toFixed(2)}`;
+      if (inputCpEstimada) inputCpEstimada.value = `S/ ${valorCuota.toFixed(2)}`;
+    } else {
+      if (inputCpTotalDevolver) inputCpTotalDevolver.value = 'S/ 0.00';
+      if (inputCpEstimada) inputCpEstimada.value = 'S/ 0.00';
+    }
+  }
+
+// Alternar entre PROGRAMADO y PAGO ÚNICO asegurando simetría total
+  radiosModalidad.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const esUnico = e.target.value === 'PAGO_UNICO';
+      const modPrestamo = document.getElementById('mod-crear-prestamo');
+
+      const grupoFrecuencia = document.getElementById('contenedor-frecuencia');
+      const grupoCuotas = document.getElementById('contenedor-cuotas');
+      const grupoValorCuota = document.getElementById('contenedor-resumen-cuota');
+
+      if (esUnico) {
+        modPrestamo?.classList.add('modo-pago-unico');
+
+        if (grupoFrecuencia) grupoFrecuencia.classList.add('campo-oculto');
+        if (grupoCuotas) grupoCuotas.classList.add('campo-oculto');
+        if (grupoValorCuota) grupoValorCuota.classList.add('campo-oculto');
+
+        if (lblFechaVenc) lblFechaVenc.textContent = 'FECHA LÍMITE DE PAGO TOTAL';
+        if (selectCpCuotas) selectCpCuotas.value = '1';
+      } else {
+        modPrestamo?.classList.remove('modo-pago-unico');
+
+        if (grupoFrecuencia) grupoFrecuencia.classList.remove('campo-oculto');
+        if (grupoCuotas) grupoCuotas.classList.remove('campo-oculto');
+        if (grupoValorCuota) grupoValorCuota.classList.remove('campo-oculto');
+
+        if (lblFechaVenc) lblFechaVenc.textContent = 'FECHA PRIMER COBRO / VENCIMIENTO';
+      }
+
+      calcularProximoVencimiento();
+      calcularTotalesPrestamo();
+    });
+  });
+
+  // Inicializaciones al cargar pantalla
+  if (inputCpFecha && !inputCpFecha.value) {
+    inputCpFecha.value = hoyStr;
+  }
+  calcularProximoVencimiento();
+  cargarClientesEnSelector();
+
+  // Escuchadores de eventos para cálculos
+  inputCpMonto?.addEventListener('input', calcularTotalesPrestamo);
+  inputCpInteres?.addEventListener('input', calcularTotalesPrestamo);
+  selectCpCuotas?.addEventListener('change', calcularTotalesPrestamo);
+  selectCpFrecuencia?.addEventListener('change', () => {
+    calcularProximoVencimiento();
+    calcularTotalesPrestamo();
+  });
+  inputCpFecha?.addEventListener('change', calcularProximoVencimiento);
+
+  // Botón ATRÁS
+  document.getElementById('btn-atras-crear')?.addEventListener('click', () => {
+    document.getElementById('mod-crear-prestamo')?.classList.add('hidden');
+    document.getElementById('menu-grid')?.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Envío final del formulario y guardado en SQLite
+  document.getElementById('form-nuevo-prestamo')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!selectCpCliente || !selectCpCliente.value) {
+      alert('Por favor, selecciona un cliente de la lista.');
+      return;
+    }
+
+    const modalidadActual = document.querySelector('input[name="modalidad_pago"]:checked')?.value || 'PROGRAMADO';
+    const payload = {
+      cliente_id: parseInt(selectCpCliente.value, 10),
+      monto: parseFloat(inputCpMonto.value),
+      tasa_interes: parseFloat(inputCpInteres.value),
+      fecha_prestamo: inputCpFecha.value,
+      fecha_vencimiento: inputCpVencimiento.value,
+      modalidad: modalidadActual,
+      frecuencia: selectCpFrecuencia?.value || 'MENSUAL',
+      plazo_cuotas: modalidadActual === 'PAGO_UNICO' ? 1 : (parseInt(selectCpCuotas.value, 10) || 1)
+    };
+
+    try {
+      const res = await fetch('/api/prestamos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('¡Préstamo registrado exitosamente en la base de datos!');
+        e.target.reset();
+        if (inputCpDni) inputCpDni.value = '';
+        if (inputCpCelular) inputCpCelular.value = '';
+        if (inputCpFecha) inputCpFecha.value = hoyStr;
+        if (inputCpTotalDevolver) inputCpTotalDevolver.value = 'S/ 0.00';
+        if (inputCpEstimada) inputCpEstimada.value = 'S/ 0.00';
+        calcularProximoVencimiento();
+      } else {
+        alert('Error al registrar préstamo: ' + (data.error || 'Problema en el servidor'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión con el servidor');
+    }
+  });
+
+  // --- CONTROL DEL REGISTRO DE CLIENTES ---
+  const modalCliente = document.getElementById('modal-nuevo-cliente');
+  const btnNuevoCliente = document.getElementById('btn-nuevo-cliente'); // Tu botón "+ Nuevo Cliente"
+  const btnCerrarModalCli = document.getElementById('btn-cerrar-modal-cli');
+  const formRegistroCliente = document.getElementById('form-registro-cliente');
+  const selectTipoDoc = document.getElementById('cli-tipo-doc');
+  const inputNumDoc = document.getElementById('cli-num-doc');
+
+  btnNuevoCliente?.addEventListener('click', () => {
+    modalCliente?.classList.remove('hidden');
+  });
+
+  btnCerrarModalCli?.addEventListener('click', () => {
+    modalCliente?.classList.add('hidden');
+    formRegistroCliente?.reset();
+  });
+
+  // Ajustar límite de dígitos según DNI (8) o RUC (11)
+  selectTipoDoc?.addEventListener('change', (e) => {
+    if (e.target.value === 'DNI') {
+      inputNumDoc.maxLength = 8;
+      inputNumDoc.placeholder = '8 dígitos';
+    } else {
+      inputNumDoc.maxLength = 11;
+      inputNumDoc.placeholder = '11 dígitos';
+    }
+  });
+
+  // Envío del nuevo cliente a la BD
+  formRegistroCliente?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      tipo_doc: selectTipoDoc.value,
+      dni: inputNumDoc.value,
+      nombre: document.getElementById('cli-nombre').value,
+      telefono: document.getElementById('cli-telefono').value,
+      telefono_ref: document.getElementById('cli-telefono-ref')?.value || '',
+      direccion: document.getElementById('cli-direccion')?.value || '',
+      observaciones: document.getElementById('cli-observaciones')?.value || ''
+    };
+
+    try {
+      const res = await fetch('/api/clientes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert('¡Cliente registrado con éxito!');
+        formRegistroCliente.reset();
+        modalCliente.classList.add('hidden');
+        cargarClientesEnSelector(); // Actualiza en vivo el selector del módulo Préstamos
+      } else {
+        alert('Error: ' + (data.error || 'No se pudo registrar el cliente'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión con el servidor.');
+    }
+  });
+  // Botón ATRÁS para volver al menú principal desde Clientes
+  document.getElementById('btn-atras-clientes')?.addEventListener('click', () => {
+    document.getElementById('mod-buscar-cliente')?.classList.add('hidden');
+    document.getElementById('menu-grid')?.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+    });
+
+    

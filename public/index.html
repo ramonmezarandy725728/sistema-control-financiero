@@ -239,12 +239,14 @@
                 <input type="text" id="general-descripcion" class="styled-input" placeholder="Ej. Cuota administrativa, cobro por asesoría técnica, penalidad por mora" required>
               </div>
 
-              <!-- Fila 4: Observaciones adicionales (Llena el espacio inferior con armonía) -->
+             <!-- Fila 4: Observaciones adicionales -->
               <div class="form-group" style="margin-bottom: 1rem;">
                 <label for="general-observaciones">5. OBSERVACIONES / REGISTRADO POR</label>
                 <input type="text" id="general-observaciones" class="styled-input" placeholder="Ej. Cobrado en taller / Técnico Rojas">
               </div>
-            </div>
+            </div> <!-- Cierra col-pago-general -->
+
+          </div> <!-- <--- AGREGA ESTE </div> (Cierra dual-form-container) -->
 
           <!-- Botones Inferiores de Acción -->
           <div class="action-footer">
@@ -253,24 +255,122 @@
             <button type="reset" class="btn-primary" style="min-width: 180px; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">CANCELAR / LIMPIAR</button>
           </div>
         </form>
-      </div>
+      </div> <!-- Cierra mod-ingreso-pago -->
 
+      <!------------------>
 
       <!-- Módulo 2: Crear Préstamo -->
       <div id="mod-crear-prestamo" class="glass-module hidden">
-        <h2>🤝 CREAR PRESTAMO</h2>
-        <form id="form-prestamo" class="styled-form">
-          <div class="form-group">
-            <label for="cliente-prestamo">Nombre del Cliente</label>
-            <input type="text" id="cliente-prestamo" placeholder="Ej. María López" required>
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          CREAR PRÉSTAMO
+        </h2>
+
+        <form id="form-nuevo-prestamo">
+          <div class="form-prestamo-grid">
+            
+            <!-- Fila 1: Selector de Cliente y DNI automático -->
+            <div class="form-group">
+              <label for="cp-cliente-select">1. SELECCIONAR CLIENTE</label>
+              <select id="cp-cliente-select" class="styled-input" required>
+                <option value="">Cargando clientes...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cp-dni">2. DNI</label>
+              <input type="text" id="cp-dni" class="styled-input" placeholder="DNI del cliente" readonly style="opacity: 0.8; cursor: not-allowed;">
+            </div>
+
+            <!-- Fila 2: Celular automático y Monto -->
+            <div class="form-group">
+              <label for="cp-celular">3. CELULAR</label>
+              <input type="tel" id="cp-celular" class="styled-input" placeholder="Teléfono del cliente" readonly style="opacity: 0.8; cursor: not-allowed;">
+            </div>
+            <div class="form-group">
+              <label for="cp-monto">4. MONTO_PRÉSTAMO (S/)</label>
+              <input type="number" step="0.01" id="cp-monto" class="styled-input" placeholder="0.00" required>
+            </div>
+
+            <!-- Fila 3: Fecha e Interés -->
+            <div class="form-group">
+              <label for="cp-fecha">5. FECHA_PRÉSTAMO</label>
+              <input type="date" id="cp-fecha" class="styled-input" required>
+            </div>
+            <div class="form-group">
+              <label for="cp-interes">6. INTERÉS % (MENSUAL)</label>
+              <input type="number" step="0.1" id="cp-interes" class="styled-input" placeholder="Ej. 10" required>
+            </div>
+
+           <!-- Fila 4: Modalidad de Pago (Ocupa todo el ancho o mitad según el modo) -->
+            <div class="form-group" id="contenedor-modalidad">
+              <label>7. MODALIDAD_PAGO</label>
+              <div class="modalidad-container">
+                <label class="radio-card">
+                  <input type="radio" name="modalidad_pago" value="PROGRAMADO" checked>
+                  <span class="radio-pill">PROGRAMADO (CUOTAS)</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="modalidad_pago" value="PAGO_UNICO">
+                  <span class="radio-pill">PAGO ÚNICO</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group" id="contenedor-frecuencia">
+              <label for="cp-frecuencia">8. FRECUENCIA DE COBRO</label>
+              <select id="cp-frecuencia" class="styled-input">
+                <option value="MENSUAL">📅 MENSUAL (Cada 30 días)</option>
+                <option value="QUINCENAL">📆 QUINCENAL (Cada 15 días)</option>
+                <option value="SEMANAL">🗓️ SEMANAL (Cada 7 días)</option>
+              </select>
+            </div>
+
+            <!-- Fila 5: Cuotas y Fecha Vencimiento -->
+            <div class="form-group" id="contenedor-cuotas">
+              <label for="cp-cuotas">NÚMERO_CUOTA</label>
+              <select id="cp-cuotas" class="styled-input">
+                <option value="1">1 Cuota</option>
+                <option value="2">2 Cuotas</option>
+                <option value="3">3 Cuotas</option>
+                <option value="4">4 Cuotas</option>
+                <option value="5">5 Cuotas</option>
+                <option value="6">6 Cuotas</option>
+                <option value="7">7 Cuotas</option>
+                <option value="8">8 Cuotas</option>
+                <option value="9">9 Cuotas</option>
+                <option value="10">10 Cuotas</option>
+                <option value="11">11 Cuotas</option>
+                <option value="12">12 Cuotas</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="contenedor-vencimiento">
+              <label for="cp-fecha-vencimiento" id="lbl-fecha-venc">FECHA PRIMER COBRO / VENCIMIENTO</label>
+              <input type="date" id="cp-fecha-vencimiento" class="styled-input" required style="border-color: #38bdf8;">
+            </div>
+
+           <!-- Fila 6: Totales y Cuota -->
+            <div class="form-group" id="contenedor-total">
+              <label>MONTO TOTAL A DEVOLVER (S/)</label>
+              <input type="text" id="cp-total-devolver" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.95; cursor: not-allowed; color: #10b981; font-weight: bold; font-size: 1.05rem; border-color: rgba(16, 185, 129, 0.4);">
+            </div>
+
+            <div class="form-group" id="contenedor-resumen-cuota">
+              <label>VALOR APROX. POR CUOTA (S/)</label>
+              <input type="text" id="cp-cuota-estimada" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.95; cursor: not-allowed; color: var(--accent-cyan); font-weight: bold; font-size: 1.05rem;">
+            </div>
+
+          </div> <!-- <--- AQUÍ SE CIERRA form-prestamo-grid (ESTE ERA EL QUE FALTABA) -->
+
+          <!-- Botones de Acción (Ahora sí están afuera del grid y centrados) -->
+          <div class="action-footer">
+            <button type="submit" class="btn-primary">GUARDAR PRÉSTAMO</button>
+            <button type="button" id="btn-atras-crear" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
+            <button type="reset" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
           </div>
-          <div class="form-group">
-            <label for="monto-prestamo">Monto Prestado (s/)</label>
-            <input type="number" id="monto-prestamo" step="0.01" placeholder="Ej. 1000.00" required>
-          </div>
-          <button type="submit" class="btn-primary">Guardar Préstamo</button>
         </form>
       </div>
+
+      <!------------------>
 
       <!-- Módulo 3: Consulta Financiero -->
       <div id="mod-consulta-financiero" class="glass-module hidden">
@@ -287,18 +387,67 @@
         </div>
       </div>
 
-      <!-- Módulo 4: Gestión de Clientes -->
+      <!-- Módulo 4: Gestión y Registro de Clientes -->
       <div id="mod-buscar-cliente" class="glass-module hidden">
-        <h2>🔍 GESTIÓN DE CLIENTES</h2>
-        <div class="search-wrapper">
-          <input type="text" placeholder="Buscar por Nombre, DNI o ID...">
-          <button type="button" class="btn-primary">Buscar</button>
-        </div>
-        <div class="client-actions" style="margin-top: 1.5rem;">
-          <button type="button" class="btn-primary" style="background: #10b981;">+ Nuevo Cliente</button>
-        </div>
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          REGISTRAR NUEVO CLIENTE
+        </h2>
+
+        <form id="form-registro-cliente">
+          <div class="form-prestamo-grid">
+            <!-- Fila 1 -->
+            <div class="form-group">
+              <label for="cli-tipo-doc">1. TIPO DOCUMENTO</label>
+              <select id="cli-tipo-doc" class="styled-input">
+                <option value="DNI">DNI (Persona Natural)</option>
+                <option value="RUC">RUC (Negocio / Empresa)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cli-num-doc">2. NÚMERO DOCUMENTO</label>
+              <input type="text" id="cli-num-doc" class="styled-input" placeholder="Ej: 70891234" required maxlength="8">
+            </div>
+
+            <!-- Fila 2: Nombre Completo abarcando ambas columnas -->
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="cli-nombre">3. NOMBRE COMPLETO O RAZÓN SOCIAL</label>
+              <input type="text" id="cli-nombre" class="styled-input" placeholder="Nombres y Apellidos" required>
+            </div>
+
+            <!-- Fila 3: Teléfonos -->
+            <div class="form-group">
+              <label for="cli-telefono">4. CELULAR PRINCIPAL (WHATSAPP)</label>
+              <input type="tel" id="cli-telefono" class="styled-input" placeholder="Ej: 987654321" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cli-telefono-ref">5. TELÉFONO RESPALDO / AVAL</label>
+              <input type="tel" id="cli-telefono-ref" class="styled-input" placeholder="Familiar o fiador (opcional)">
+            </div>
+
+            <!-- Fila 4: Domicilio y Referencia -->
+            <div class="form-group">
+              <label for="cli-direccion">6. DIRECCIÓN DOMICILIARIA</label>
+              <input type="text" id="cli-direccion" class="styled-input" placeholder="Calle, Av., Mz., Lt., N°">
+            </div>
+
+            <div class="form-group">
+              <label for="cli-observaciones">7. REFERENCIAS / NOTAS</label>
+              <input type="text" id="cli-observaciones" class="styled-input" placeholder="Cerca al parque, negocio propio, etc.">
+            </div>
+          </div>
+
+          <!-- Botones de Acción centrados -->
+          <div class="action-footer">
+            <button type="submit" class="btn-primary">GUARDAR CLIENTE</button>
+            <button type="button" id="btn-atras-clientes" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
+            <button type="reset" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
+          </div>
+        </form>
       </div>
 
+      
       <!-- Módulo 5: Gráficos y Analítica -->
       <div id="mod-graficos" class="glass-module hidden">
         <h2>📈 GRÁFICOS Y ANALISIS</h2>
