@@ -35,82 +35,226 @@
     </header>
 
     <!-- MENÚ DE CUADRITOS TIPO GRID -->
-<section id="menu-grid" class="dashboard-grid">
-  
-  <!-- 1. INGRESO DE PAGO -->
-  <button class="grid-card" data-target="mod-ingreso-pago">
-    <div class="card-icon">💳</div>
-    <div class="card-info">
-      <h3>INGRESO DE PAGO</h3>
-      <p>Registrar abonos e ingresos</p>
-    </div>
-  </button>
+    <section id="menu-grid" class="dashboard-grid">
+      
+      <!-- 1. INGRESO DE PAGO -->
+      <button class="grid-card" data-target="mod-ingreso-pago">
+        <div class="card-icon">💳</div>
+        <div class="card-info">
+          <h3>INGRESO DE PAGO</h3>
+          <p>Registrar abonos e ingresos</p>
+        </div>
+      </button>
 
-  <!-- 2. CREAR PRESTAMO -->
-  <button class="grid-card" data-target="mod-crear-prestamo">
-    <div class="card-icon">🤝</div>
-    <div class="card-info">
-      <h3>CREAR PRESTAMO</h3>
-      <p>Generar un nuevo préstamo o crédito</p>
-    </div>
-  </button>
+      <!-- 2. CREAR PRESTAMO -->
+      <button class="grid-card" data-target="mod-crear-prestamo">
+        <div class="card-icon">🤝</div>
+        <div class="card-info">
+          <h3>CREAR PRESTAMO</h3>
+          <p>Generar un nuevo préstamo o crédito</p>
+        </div>
+      </button>
 
-  <!-- 3. ALERTAS DE COBRANZA -->
-  <button class="grid-card card-alert" data-target="mod-cobranza">
-    <div class="card-icon">🚨</div>
-    <div class="card-info">
-      <h3>ALERTAS COBRANZA</h3>
-      <p>Cuotas del día y clientes en mora</p>
-    </div>
-  </button>
+      <!-- 3. ALERTAS DE COBRANZA -->
+      <button class="grid-card card-alert" data-target="mod-cobranza">
+        <div class="card-icon">🚨</div>
+        <div class="card-info">
+          <h3>ALERTAS COBRANZA</h3>
+          <p>Cuotas del día y clientes en mora</p>
+        </div>
+      </button>
 
-  <!-- 4. CONSULTA FINANCIERO -->
-  <button class="grid-card" data-target="mod-consulta-financiero">
-    <div class="card-icon">📊</div>
-    <div class="card-info">
-      <h3>CONSULTA FINANCIERO</h3>
-      <p>Ver balances, totales y reportes</p>
-    </div>
-  </button>
+      <!-- 4. CONSULTA FINANCIERO -->
+      <button class="grid-card" data-target="mod-consulta-financiero">
+        <div class="card-icon">📊</div>
+        <div class="card-info">
+          <h3>CONSULTA FINANCIERO</h3>
+          <p>Ver balances, totales y reportes</p>
+        </div>
+      </button>
 
-  <!-- 5. GESTIÓN DE CLIENTES -->
-  <button class="grid-card" data-target="mod-buscar-cliente">
-    <div class="card-icon">🔍</div>
-    <div class="card-info">
-      <h3>GESTIÓN DE CLIENTES</h3>
-      <p>Buscar, registrar y modificar clientes</p>
-    </div>
-  </button>
+      <!-- 5. GESTIÓN DE CLIENTES -->
+      <button class="grid-card" data-target="mod-buscar-cliente">
+        <div class="card-icon">🔍</div>
+        <div class="card-info">
+          <h3>GESTIÓN DE CLIENTES</h3>
+          <p>Buscar, registrar y modificar clientes</p>
+        </div>
+      </button>
 
-  <!-- 6. GRÁFICOS Y ANALÍTICA -->
-  <button class="grid-card" data-target="mod-graficos">
-    <div class="card-icon">📈</div>
-    <div class="card-info">
-      <h3>GRÁFICOS Y ANALÍTICA</h3>
-      <p>Métricas de ingresos e historial visual</p>
-    </div>
-  </button>
+      <!-- 6. GRÁFICOS Y ANALÍTICA -->
+      <button class="grid-card" data-target="mod-graficos">
+        <div class="card-icon">📈</div>
+        <div class="card-info">
+          <h3>GRÁFICOS Y ANALÍTICA</h3>
+          <p>Métricas de ingresos e historial visual</p>
+        </div>
+      </button>
 
-</section>
+    </section>
 
     <!-- SECCIÓN DE MÓDULOS ACTIVOS -->
     <main id="content-area">
 
       <!-- Módulo 1: Ingreso de Pago -->
       <div id="mod-ingreso-pago" class="glass-module hidden">
-        <h2>💳 INGRESO DE PAGO</h2>
-        <form id="form-ingreso-pago" class="styled-form">
-          <div class="form-group">
-            <label for="monto-pago">Monto (s/)</label>
-            <input type="number" id="monto-pago" step="0.01" placeholder="Ej. 500.00" required>
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          INGRESO PAGO (TIPO DE TRANSACCIÓN)
+        </h2>
+
+        <form id="form-transaccion-pago">
+          <div class="dual-form-container">
+            
+            <!-- Columna Izquierda: PAGO PRÉSTAMO -->
+            <div class="form-column" id="col-pago-prestamo">
+              <div class="column-pill-header">
+                PAGO PRÉSTAMO
+              </div>
+
+              <!-- 1. SELECCIÓN EN CASCADA: CLIENTE -> PRÉSTAMO -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-cliente">1. CLIENTE</label>
+                  <select id="pago-cliente" class="styled-input" required>
+                    <option value="">Seleccione cliente...</option>
+                    <option value="1">ROJAS</option>
+                    <option value="2">CHACON</option>
+                    <option value="3">JOSE</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-prestamo-deuda">DEUDA / PRÉSTAMO ACTIVO</label>
+                  <select id="pago-prestamo-deuda" class="styled-input" disabled required>
+                    <option value="">Primero seleccione un cliente...</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 2. DATOS DE CONSULTA (SOLO LECTURA) -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-capital-ref">CAPITAL INICIAL PACTADO (S/)</label>
+                  <input type="text" id="pago-capital-ref" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-saldo-actual">SALDO DEUDOR ACTUAL (S/)</label>
+                  <input type="text" id="pago-saldo-actual" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.8; cursor: not-allowed; color: #38bdf8; font-weight: bold;">
+                </div>
+              </div>
+
+              <!-- 3. TIPO DE OPERACIÓN Y MÉTODO DE COBRO -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-tipo-pago">2. TIPO DE OPERACIÓN</label>
+                  <select id="pago-tipo-pago" class="styled-input">
+                    <option value="CUOTA_ESTABLECIDA">PAGO CUOTA FIJA</option>
+                    <option value="AMORTIZAR_CAPITAL">AMORTIZAR AL CAPITAL</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-metodo">MÉTODO DE INGRESO (CAJA)</label>
+                  <select id="pago-metodo" class="styled-input">
+                    <option value="EFECTIVO">💵 EFECTIVO</option>
+                    <option value="YAPE_PLIN">📱 YAPE / PLIN</option>
+                    <option value="TRANSFERENCIA">🏦 TRANSFERENCIA</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 4. MONTO RECIBIDO Y FECHA -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-monto-abono">3. MONTO RECIBIDO / ABONO (S/)</label>
+                  <input type="number" step="0.01" id="pago-monto-abono" class="styled-input" placeholder="0.00" required style="border-color: var(--accent-cyan); font-weight: bold; font-size: 1.05rem;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-fecha-efectiva">FECHA DE INGRESO</label>
+                  <input type="date" id="pago-fecha-efectiva" class="styled-input" required>
+                </div>
+              </div>
+
+              <!-- 5. DESGLOSE DEL PAGO (TASA % E INTERÉS) -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-interes-cobrado">TASA APLICADA / INTERÉS A COBRAR</label>
+                  <input type="text" id="pago-interes-cobrado" class="styled-input" placeholder="0% - S/ 0.00" readonly style="opacity: 0.9; cursor: not-allowed; color: #f59e0b; font-weight: bold;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-amortizacion-real">AMORTIZACIÓN AL CAPITAL (S/)</label>
+                  <input type="text" id="pago-amortizacion-real" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.9; cursor: not-allowed; color: #38bdf8; font-weight: bold;">
+                </div>
+              </div>
+
+              <!-- 6. SALDO Y PRÓXIMO INTERÉS -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-nuevo-saldo">NUEVO SALDO DEUDOR (S/)</label>
+                  <input type="text" id="pago-nuevo-saldo" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.9; cursor: not-allowed; color: #10b981; font-weight: bold; font-size: 1.05rem; border-color: rgba(16, 185, 129, 0.4);">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="pago-nuevo-interes-futuro">PRÓXIMO INTERÉS CON NUEVO SALDO</label>
+                  <input type="text" id="pago-nuevo-interes-futuro" class="styled-input" placeholder="S/ 0.00 (0%)" readonly style="opacity: 0.9; cursor: not-allowed; color: #34d399; font-weight: bold;">
+                </div>
+              </div>
+            </div>
+
+           <!-- Columna Derecha: PAGO GENERAL (DISTRIBUCIÓN 2 COLUMNAS IDÉNTICA A PRÉSTAMO) -->
+            <div class="form-column" id="col-pago-general">
+              <div class="column-pill-header" style="color: #60a5fa; border-color: rgba(96, 165, 250, 0.3);">
+                PAGO GENERAL / OTROS INGRESOS
+              </div>
+
+              <!-- Fila 1: Fecha y Método -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="general-fecha">1. FECHA DE INGRESO</label>
+                  <input type="date" id="general-fecha" class="styled-input" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="general-metodo">2. MÉTODO DE INGRESO (CAJA)</label>
+                  <select id="general-metodo" class="styled-input">
+                    <option value="EFECTIVO">💵 EFECTIVO</option>
+                    <option value="YAPE_PLIN">📱 YAPE / PLIN</option>
+                    <option value="TRANSFERENCIA">🏦 TRANSFERENCIA</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Fila 2: Monto y Nro Comprobante -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="general-monto">3. MONTO RECIBIDO (S/.)</label>
+                  <input type="number" step="0.01" id="general-monto" class="styled-input" placeholder="0.00" required style="border-color: #60a5fa; font-weight: bold; font-size: 1.05rem; color: #60a5fa;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <label for="general-comprobante">N° DE OPERACIÓN / RECIBO</label>
+                  <input type="text" id="general-comprobante" class="styled-input" placeholder="Ej. OP-98432 o Boleta 01">
+                </div>
+              </div>
+
+              <!-- Fila 3: Descripción completa (Abarca ambas columnas) -->
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="general-descripcion">4. CONCEPTO O DETALLE DEL INGRESO</label>
+                <input type="text" id="general-descripcion" class="styled-input" placeholder="Ej. Cuota administrativa, cobro por asesoría técnica, penalidad por mora" required>
+              </div>
+
+              <!-- Fila 4: Observaciones adicionales (Llena el espacio inferior con armonía) -->
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="general-observaciones">5. OBSERVACIONES / REGISTRADO POR</label>
+                <input type="text" id="general-observaciones" class="styled-input" placeholder="Ej. Cobrado en taller / Técnico Rojas">
+              </div>
+            </div>
+
+          <!-- Botones Inferiores de Acción -->
+          <div class="action-footer">
+            <button type="submit" class="btn-primary" style="min-width: 180px;">GUARDAR PAGO</button>
+            <button type="button" id="btn-volver-atras" class="btn-primary" style="min-width: 180px; background: rgba(255,255,255,0.1);">ATRAS</button>
+            <button type="reset" class="btn-primary" style="min-width: 180px; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">CANCELAR / LIMPIAR</button>
           </div>
-          <div class="form-group">
-            <label for="cliente-pago">Cliente / Concepto</label>
-            <input type="text" id="cliente-pago" placeholder="Ej. Juan Pérez - Cuota 1" required>
-          </div>
-          <button type="submit" class="btn-primary">Registrar Pago</button>
         </form>
       </div>
+
 
       <!-- Módulo 2: Crear Préstamo -->
       <div id="mod-crear-prestamo" class="glass-module hidden">
@@ -168,21 +312,21 @@
       </div>
 
       <!-- Módulo 6: Alertas de Cobranza -->
-<div id="mod-cobranza" class="glass-module hidden">
-  <h2>🚨 CONTROL DE COBRANZA Y VENCIMIENTOS</h2>
-  <p class="subtitle" style="margin-bottom: 1.5rem;">Listado prioritario para gestión del día</p>
-  
-  <div class="stats-container">
-    <div class="stat-box red">
-      <span>Cobros para Hoy</span>
-      <h3>0 Pendientes</h3>
-    </div>
-    <div class="stat-box yellow">
-      <span>En Demora</span>
-      <h3>s/0.00</h3>
-    </div>
-  </div>
-</div>
+      <div id="mod-cobranza" class="glass-module hidden">
+        <h2>🚨 CONTROL DE COBRANZA Y VENCIMIENTOS</h2>
+        <p class="subtitle" style="margin-bottom: 1.5rem;">Listado prioritario para gestión del día</p>
+        
+        <div class="stats-container">
+          <div class="stat-box red">
+            <span>Cobros para Hoy</span>
+            <h3>0 Pendientes</h3>
+          </div>
+          <div class="stat-box yellow">
+            <span>En Demora</span>
+            <h3>s/0.00</h3>
+          </div>
+        </div>
+      </div>
 
     </main>
   </div>

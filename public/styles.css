@@ -279,3 +279,355 @@ input:focus { border-color: var(--accent-cyan); }
 
 .stat-box.red { border-left: 4px solid #ef4444; }
 .stat-box.yellow { border-left: 4px solid #f59e0b; }
+
+/* ========================================================
+   CORRECCIÓN: ANCHO Y DISTRIBUCIÓN DEL MÓDULO INGRESO DE PAGO
+   ======================================================== */
+
+/* 1. Ampliar el módulo de pago para que tenga espacio real */
+#mod-ingreso-pago {
+  max-width: 1050px !important; /* Pasa de 650px a 1050px */
+  width: 100% !important;
+}
+
+/* 2. Asegurar que las 2 columnas se repartan equitativamente */
+.dual-form-container {
+  display: grid !important;
+  grid-template-columns: 1.15fr 1fr !important;
+  gap: 2.5rem !important;
+  align-items: start;
+}
+
+/* 3. Dar estilo y ancho completo a todos los selects e inputs dentro de este formulario */
+.styled-input {
+  width: 100% !important;
+  background: var(--input-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  font-size: 0.95rem !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.styled-input:focus {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3) !important;
+}
+
+/* 4. Evitar que las opciones desplegables del select salgan con fondo blanco */
+.styled-input option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* 5. Estilo de los encabezados tipo pastilla (PAGO PRESTAMO / PAGO GENERAL) */
+.column-pill-header {
+  font-family: var(--font-title) !important;
+  color: var(--accent-cyan) !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase;
+}
+
+/* 6. En pantallas medianas o celulares, apilar una columna debajo de la otra */
+@media (max-width: 820px) {
+  .dual-form-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================================
+   AJUSTE DE ANCHO Y SELECTOR PARA INGRESO DE PAGO
+   ========================================================= */
+
+/* ==========================================================================
+   MÓDULO: INGRESO DE PAGO (PAGO PRÉSTAMO Y PAGO GENERAL)
+   ========================================================================== */
+
+/* 1. Caja contenedora amplia y centrada */
+#mod-ingreso-pago {
+  max-width: 1050px !important;
+  width: 95% !important;
+  margin: 0 auto !important;
+  padding: 3rem 3.5rem !important;
+}
+
+/* 2. Quitar el corte a la mitad original */
+.dual-form-container {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* 3. Selector superior centrado (Préstamo vs General) */
+.contenedor-tipo-pago {
+  max-width: 480px;
+  margin: 0 auto 2.5rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.contenedor-tipo-pago label {
+  font-family: var(--font-title);
+  color: var(--accent-cyan);
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+}
+
+.select-dinamico-tipo {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--accent-cyan) !important;
+  color: var(--text-primary);
+  padding: 0.85rem 1.2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+  cursor: pointer;
+  text-align: center;
+}
+
+.select-dinamico-tipo option {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+/* 4. Vista cuando está activo PAGO PRÉSTAMO (Grid de 2 columnas) */
+.form-column-prestamo-activa {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1.4rem 2rem !important;
+  width: 100% !important;
+}
+
+/* Título de columna */
+.column-pill-header {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--font-title);
+  letter-spacing: 1.5px;
+  color: var(--accent-cyan);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  margin-bottom: 0.5rem;
+}
+
+/* 5. Vista cuando está activo PAGO GENERAL (Columna vertical centrada) */
+.form-column-general-activa {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+/* Clase para ocultar lo que no esté seleccionado */
+/* Ambas vistas comparten el mismo tamaño y distribución de 2 columnas */
+.form-column-prestamo-activa,
+.form-column-general-activa {
+  display: block !important;
+  width: 100% !important;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 6. Inputs y Selects */
+.styled-input {
+  width: 100% !important;
+  background: var(--input-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-primary);
+  padding: 0.85rem 1.1rem !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.styled-input:focus {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3) !important;
+}
+
+.styled-input option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* 7. Botones inferiores de acción */
+#mod-ingreso-pago:not(.hidden) .action-footer {
+  display: flex !important;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 3rem !important;
+  width: 100%;
+}
+
+.action-footer {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-column-prestamo-activa,
+  .form-column-prestamo-activa > div[style*="display: flex"] {
+    grid-template-columns: 1fr !important;
+  }
+  #mod-ingreso-pago {
+    padding: 2rem 1.5rem !important;
+  }
+}
+
+/* =========================================================
+   DISEÑO AMPLIO Y CENTRADO: MÓDULO INGRESO DE PAGO
+   ========================================================= */
+
+/* 1. Tarjeta principal ancha y centrada */
+#mod-ingreso-pago {
+  max-width: 1050px !important;
+  width: 95% !important;
+  margin: 0 auto !important;
+  padding: 3rem 3.5rem !important;
+}
+
+/* 2. Quitar el corte a la mitad de dual-form-container */
+.dual-form-container {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* 3. Selector superior centrado */
+.contenedor-tipo-pago {
+  max-width: 480px;
+  margin: 0 auto 2.5rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.contenedor-tipo-pago label {
+  font-family: var(--font-title);
+  color: var(--accent-cyan);
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+}
+
+.select-dinamico-tipo {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--accent-cyan) !important;
+  color: var(--text-primary);
+  padding: 0.85rem 1.2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+  cursor: pointer;
+  text-align: center;
+}
+
+.select-dinamico-tipo option {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+/* 4. Columna activa: distribuida en 2 columnas elegantes */
+.form-column-activa {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1.4rem 2rem !important;
+  width: 100% !important;
+}
+
+.form-column-oculta {
+  display: none !important;
+}
+
+/* El título de la columna abarca todo el ancho */
+.form-column-activa .column-pill-header {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--font-title);
+  letter-spacing: 1.5px;
+  color: var(--accent-cyan);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  margin-bottom: 0.5rem;
+}
+
+/* Campos individuales */
+.form-column-activa .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0 !important;
+}
+
+/* Fila de campos divididos (Pago capital / cuota e interés / fecha) */
+.form-column-activa > div[style*="display: flex"] {
+  grid-column: 1 / -1;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2rem !important;
+  margin: 0 !important;
+}
+
+/* 5. Inputs y selects oscuros y estilizados */
+.styled-input {
+  width: 100% !important;
+  background: var(--input-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-primary) !important;
+  padding: 0.85rem 1.1rem !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.styled-input:focus {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3) !important;
+}
+
+.styled-input option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* 6. Botones de acción inferiores */
+.action-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 3rem !important;
+  width: 100%;
+}
+
+/* Adaptación responsive */
+@media (max-width: 768px) {
+  .form-column-activa,
+  .form-column-activa > div[style*="display: flex"] {
+    grid-template-columns: 1fr !important;
+  }
+  #mod-ingreso-pago {
+    padding: 2rem 1.5rem !important;
+  }
+}
