@@ -116,11 +116,8 @@
                 <div class="form-group" style="flex: 1;">
                   <label for="pago-cliente">1. CLIENTE</label>
                   <select id="pago-cliente" class="styled-input" required>
-                    <option value="">Seleccione cliente...</option>
-                    <option value="1">ROJAS</option>
-                    <option value="2">CHACON</option>
-                    <option value="3">JOSE</option>
-                  </select>
+  <option value="">Cargando clientes...</option>
+</select>
                 </div>
 
                 <div class="form-group" style="flex: 1;">
@@ -266,8 +263,9 @@
         </h2>
 
         <form id="form-nuevo-prestamo">
+          <input type="hidden" id="prestamo-edit-id" value="">
+          
           <div class="form-prestamo-grid">
-            
             <!-- Fila 1: Selector de Cliente y DNI automático -->
             <div class="form-group">
               <label for="cp-cliente-select">1. SELECCIONAR CLIENTE</label>
@@ -300,7 +298,7 @@
               <input type="number" step="0.1" id="cp-interes" class="styled-input" placeholder="Ej. 10" required>
             </div>
 
-           <!-- Fila 4: Modalidad de Pago (Ocupa todo el ancho o mitad según el modo) -->
+            <!-- Fila 4: Modalidad de Pago -->
             <div class="form-group" id="contenedor-modalidad">
               <label>7. MODALIDAD_PAGO</label>
               <div class="modalidad-container">
@@ -348,7 +346,7 @@
               <input type="date" id="cp-fecha-vencimiento" class="styled-input" required style="border-color: #38bdf8;">
             </div>
 
-           <!-- Fila 6: Totales y Cuota -->
+            <!-- Fila 6: Totales y Cuota -->
             <div class="form-group" id="contenedor-total">
               <label>MONTO TOTAL A DEVOLVER (S/)</label>
               <input type="text" id="cp-total-devolver" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.95; cursor: not-allowed; color: #10b981; font-weight: bold; font-size: 1.05rem; border-color: rgba(16, 185, 129, 0.4);">
@@ -358,19 +356,39 @@
               <label>VALOR APROX. POR CUOTA (S/)</label>
               <input type="text" id="cp-cuota-estimada" class="styled-input" placeholder="S/ 0.00" readonly style="opacity: 0.95; cursor: not-allowed; color: var(--accent-cyan); font-weight: bold; font-size: 1.05rem;">
             </div>
+          </div> <!-- Cierre correcto de form-prestamo-grid -->
 
-          </div> <!-- <--- AQUÍ SE CIERRA form-prestamo-grid (ESTE ERA EL QUE FALTABA) -->
-
-          <!-- Botones de Acción (Ahora sí están afuera del grid y centrados) -->
-          <div class="action-footer">
+          <!-- Botones de Acción centrados -->
+          <div class="action-footer" style="margin-top: 2rem; display: flex; gap: 12px; justify-content: center;">
             <button type="submit" class="btn-primary">GUARDAR PRÉSTAMO</button>
             <button type="button" id="btn-atras-crear" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
             <button type="reset" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
           </div>
-        </form>
-      </div>
+        </form> <!-- Cierre del form -->
 
-      <!------------------>
+        <!-- TABLA DE HISTORIAL DE PRÉSTAMOS (AHORA SÍ VA ABAJO Y AL 100% DE ANCHO) -->
+        <div class="table-responsive" style="margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+          <h3 style="color: #00d2ff; margin-bottom: 15px; font-size: 1.1rem; letter-spacing: 1px;">HISTORIAL DE PRÉSTAMOS REGISTRADOS</h3>
+          <table class="styled-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(255,255,255,0.05); color: #00d2ff; text-align: left;">
+                <th style="padding: 10px;">ID</th>
+                <th style="padding: 10px;">Cliente</th>
+                <th style="padding: 10px;">Monto</th>
+                <th style="padding: 10px;">Total a Pagar</th>
+                <th style="padding: 10px;">Saldo Actual</th>
+                <th style="padding: 10px;">Vencimiento</th>
+                <th style="padding: 10px;">Estado</th>
+                <th style="padding: 10px; text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-prestamos-body">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+
+      </div> <!-- Cierre del módulo mod-crear-prestamo -->
 
       <!-- Módulo 3: Consulta Financiero -->
       <div id="mod-consulta-financiero" class="glass-module hidden">
@@ -387,13 +405,15 @@
         </div>
       </div>
 
-      <!-- Módulo 4: Gestión y Registro de Clientes -->
+     <!-- Módulo 4: Gestión y Registro de Clientes -->
       <div id="mod-buscar-cliente" class="glass-module hidden">
         <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
           REGISTRAR NUEVO CLIENTE
         </h2>
 
         <form id="form-registro-cliente">
+          <input type="hidden" id="cli-edit-id" value="">
+
           <div class="form-prestamo-grid">
             <!-- Fila 1 -->
             <div class="form-group">
@@ -409,13 +429,13 @@
               <input type="text" id="cli-num-doc" class="styled-input" placeholder="Ej: 70891234" required maxlength="8">
             </div>
 
-            <!-- Fila 2: Nombre Completo abarcando ambas columnas -->
+            <!-- Fila 2 -->
             <div class="form-group" style="grid-column: span 2;">
               <label for="cli-nombre">3. NOMBRE COMPLETO O RAZÓN SOCIAL</label>
               <input type="text" id="cli-nombre" class="styled-input" placeholder="Nombres y Apellidos" required>
             </div>
 
-            <!-- Fila 3: Teléfonos -->
+            <!-- Fila 3 -->
             <div class="form-group">
               <label for="cli-telefono">4. CELULAR PRINCIPAL (WHATSAPP)</label>
               <input type="tel" id="cli-telefono" class="styled-input" placeholder="Ej: 987654321" required>
@@ -426,7 +446,7 @@
               <input type="tel" id="cli-telefono-ref" class="styled-input" placeholder="Familiar o fiador (opcional)">
             </div>
 
-            <!-- Fila 4: Domicilio y Referencia -->
+            <!-- Fila 4 -->
             <div class="form-group">
               <label for="cli-direccion">6. DIRECCIÓN DOMICILIARIA</label>
               <input type="text" id="cli-direccion" class="styled-input" placeholder="Calle, Av., Mz., Lt., N°">
@@ -439,14 +459,36 @@
           </div>
 
           <!-- Botones de Acción centrados -->
-          <div class="action-footer">
-            <button type="submit" class="btn-primary">GUARDAR CLIENTE</button>
-            <button type="button" id="btn-atras-clientes" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
-            <button type="reset" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
+          <!-- Botones de Acción centrados -->
+          <div class="action-footer" style="margin-top: 2rem; display: flex; gap: 12px; justify-content: center;">
+            <button type="submit" id="btn-guardar-prestamo" class="btn-primary">GUARDAR PRÉSTAMO</button>
+            <button type="button" id="btn-atras-crear" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
+            <button type="button" id="btn-cancelar-prestamo" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
           </div>
         </form>
-      </div>
 
+        <!-- TABLA DENTRO DEL MÓDULO -->
+        <div class="table-responsive" style="margin-top: 35px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+          <h3 style="color: #00d2ff; margin-bottom: 15px; font-size: 1.1rem; letter-spacing: 1px;">LISTADO DE CLIENTES REGISTRADOS</h3>
+          <table class="styled-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(255,255,255,0.05); color: #00d2ff; text-align: left;">
+                <th style="padding: 10px;">DNI / Doc</th>
+                <th style="padding: 10px;">Nombre</th>
+                <th style="padding: 10px;">Teléfono</th>
+                <th style="padding: 10px;">Dirección</th>
+                <th style="padding: 10px; text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-clientes-body">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+        </div>
+
+      </div> <!-- Cierre correcto del módulo -->
+
+      
       
       <!-- Módulo 5: Gráficos y Analítica -->
       <div id="mod-graficos" class="glass-module hidden">
@@ -462,18 +504,70 @@
 
       <!-- Módulo 6: Alertas de Cobranza -->
       <div id="mod-cobranza" class="glass-module hidden">
-        <h2>🚨 CONTROL DE COBRANZA Y VENCIMIENTOS</h2>
-        <p class="subtitle" style="margin-bottom: 1.5rem;">Listado prioritario para gestión del día</p>
-        
-        <div class="stats-container">
-          <div class="stat-box red">
-            <span>Cobros para Hoy</span>
-            <h3>0 Pendientes</h3>
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          🚨 ALERTAS DE COBRANZA Y VENCIMIENTOS
+        </h2>
+
+        <!-- Contadores Rápidos -->
+        <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+          <div class="stat-box red" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 1.2rem; border-radius: 12px; text-align: center;">
+            <span style="color: #fca5a5; font-size: 0.85rem; font-weight: bold;">URGENTE / DEMORA </span>
+            <h3 id="contador-rojo" style="color: #ef4444; font-size: 1.8rem; margin-top: 0.5rem;">0</h3>
           </div>
-          <div class="stat-box yellow">
-            <span>En Demora</span>
-            <h3>s/0.00</h3>
+          <div class="stat-box yellow" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1.2rem; border-radius: 12px; text-align: center;">
+            <span style="color: #fde68a; font-size: 0.85rem; font-weight: bold;">PRÓXIMO A VENCER </span>
+            <h3 id="contador-amarillo" style="color: #f59e0b; font-size: 1.8rem; margin-top: 0.5rem;">0</h3>
           </div>
+          <div class="stat-box green" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1.2rem; border-radius: 12px; text-align: center;">
+            <span style="color: #a7f3d0; font-size: 0.85rem; font-weight: bold;">EN PLAZO </span>
+            <h3 id="contador-verde" style="color: #10b981; font-size: 1.8rem; margin-top: 0.5rem;">0</h3>
+          </div>
+        </div>
+
+        <!-- Panel de 2 columnas: Lista y Detalle -->
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+          
+          <!-- Lista de Cobros -->
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); max-height: 480px; overflow-y: auto;" id="lista-cobranzas">
+            <p style="color: #94a3b8; text-align: center;">Cargando cobros pendientes...</p>
+          </div>
+
+          <!-- Ficha de Detalle Seleccionado -->
+          <div id="panel-detalle-cobro" style="background: rgba(15, 23, 42, 0.8); padding: 1.8rem; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="color: var(--accent-cyan); font-size: 1.1rem; margin-bottom: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">FICHA DE COBRANZA</h3>
+              <div id="detalle-info-vacio" style="color: #64748b; text-align: center; margin-top: 3rem;">
+                Selecciona una cuenta de la lista para ver el desglose y opciones de cobro.
+              </div>
+              <div id="detalle-info-contenido" class="hidden" style="display: flex; flex-direction: column; gap: 0.9rem; font-size: 0.9rem;">
+                <div><span style="color: #94a3b8;">Cliente:</span> <strong id="det-cliente" style="color: #fff;">-</strong></div>
+                <div><span style="color: #94a3b8;">Teléfono:</span> <span id="det-telefono" style="color: #fff;">-</span></div>
+                <div><span style="color: #94a3b8;">Tel. Aval/Respaldo:</span> <span id="det-aval" style="color: #fff;">-</span></div>
+                <div><span style="color: #94a3b8;">Fecha Límite:</span> <strong id="det-fecha" style="color: #f59e0b;">-</strong></div>
+                <div><span style="color: #94a3b8;">Saldo Pendiente:</span> <strong id="det-saldo" style="color: #ef4444; font-size: 1.1rem;">-</strong></div>
+              </div>
+            </div>
+
+            <div id="acciones-cobro" class="hidden" style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.5rem;">
+              <!-- Fila de Contacto Directo -->
+              <div style="display: flex; gap: 0.8rem;">
+                <a id="btn-whatsapp-cobro" target="_blank" class="btn-primary" style="flex: 1; background: #22c55e; border-color: #16a34a; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #fff; cursor: pointer; height: 46px; font-size: 0.8rem;">
+                  💬 WHATSAPP
+                </a>
+                <a id="btn-llamar-cobro" href="#" class="btn-primary" style="flex: 1; background: #0284c7; border-color: #0369a1; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #fff; cursor: pointer; height: 46px; font-size: 0.8rem;">
+                  📞 LLAMAR
+                </a>
+              </div>
+
+              <!-- Botón Cobrar Directo -->
+              <button type="button" id="btn-cobrar-directo" class="btn-primary" style="width: 100%; background: #6366f1; border-color: #4f46e5; height: 46px; font-size: 0.85rem;">
+                💳 REGISTRAR ABONO / COBRAR
+              </button>
+            </div>
+
+        <!-- Botón Volver -->
+        <div class="action-footer" style="margin-top: 2.5rem; display: flex; justify-content: center;">
+          <button type="button" id="btn-atras-cobranza" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; min-width: 190px;">ATRÁS</button>
         </div>
       </div>
 

@@ -1052,3 +1052,28 @@ body.light-theme #mod-crear-prestamo #btn-atras-crear {
   color: #ffffff !important;
   border-color: #1e293b !important;
 }
+
+/* Ancho proporcionado para Alertas de Cobranza */
+#mod-cobranza.glass-module {
+  max-width: 1100px !important;
+  width: 92% !important;
+  margin: 2.5rem auto !important;
+  padding: 3rem 3.5rem !important;
+  box-sizing: border-box !important;
+}
+
+body.light-theme #mod-cobranza.glass-module {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+body.light-theme #mod-cobranza #panel-detalle-cobro,
+body.light-theme #mod-cobranza #lista-cobranzas {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.light-theme #mod-cobranza h2,
+body.light-theme #mod-cobranza strong {
+  color: #0f172a !important;
+}

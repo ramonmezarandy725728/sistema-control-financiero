@@ -622,123 +622,435 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Envío final del formulario y guardado en SQLite
-  document.getElementById('form-nuevo-prestamo')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+// ==========================================================================
+// MÓDULO 4: GESTIÓN DE CLIENTES (CRUD COMPLETO)
+// ==========================================================================
+async function procesarFormularioCliente(e) {
+  if (e) e.preventDefault();
 
-    if (!selectCpCliente || !selectCpCliente.value) {
-      alert('Por favor, selecciona un cliente de la lista.');
+  const editId = document.getElementById('cli-edit-id')?.value;
+  const tipo_doc = document.getElementById('cli-tipo-doc')?.value || 'DNI';
+  const dni = (document.getElementById('cli-num-doc') || document.getElementById('cli-dni'))?.value?.trim();
+  const nombre = (document.getElementById('cli-nombre') || document.getElementById('cli-razon-social'))?.value?.trim().toUpperCase();
+  const telefono = (document.getElementById('cli-telefono') || document.getElementById('cli-celular'))?.value?.trim();
+  const telefono_ref = (document.getElementById('cli-telefono-ref') || document.getElementById('cli-respaldo'))?.value?.trim() || '';
+  const direccion = document.getElementById('cli-direccion')?.value?.trim() || '';
+  const observaciones = (document.getElementById('cli-observaciones') || document.getElementById('cli-referencias'))?.value?.trim() || '';
+
+  if (!dni || !nombre || !telefono) {
+    alert('Por favor complete los campos obligatorios: Documento, Nombre y Celular.');
+    return;
+  }
+
+  const payload = { tipo_doc, dni, nombre, telefono, telefono_ref, direccion, observaciones };
+  const url = editId ? `/api/clientes/${editId}` : '/api/clientes';
+  const method = editId ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(editId ? `¡Cliente ${nombre} actualizado correctamente!` : `¡Cliente ${nombre} guardado exitosamente!`);
+      limpiarFormularioCliente();
+      renderizarTablaClientes();
+      if (typeof cargarClientesEnSelector === 'function') cargarClientesEnSelector();
+      if (typeof cargarClientesEnPagosDirecto === 'function') cargarClientesEnPagosDirecto();
+    } else {
+      alert('Aviso: ' + (data.error || 'No se pudo procesar la solicitud'));
+    }
+  } catch (err) {
+    console.error('Error en cliente:', err);
+    alert('Error al conectar con el servidor.');
+  }
+}
+
+async function renderizarTablaClientes() {
+  const tbody = document.getElementById('tabla-clientes-body');
+  if (!tbody) return;
+
+  try {
+    const res = await fetch('/api/clientes');
+    const clientes = await res.json();
+    tbody.innerHTML = '';
+
+    if (!clientes || clientes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:#94a3b8;">No hay clientes registrados aún.</td></tr>';
       return;
     }
 
-    const modalidadActual = document.querySelector('input[name="modalidad_pago"]:checked')?.value || 'PROGRAMADO';
-    const payload = {
-      cliente_id: parseInt(selectCpCliente.value, 10),
-      monto: parseFloat(inputCpMonto.value),
-      tasa_interes: parseFloat(inputCpInteres.value),
-      fecha_prestamo: inputCpFecha.value,
-      fecha_vencimiento: inputCpVencimiento.value,
-      modalidad: modalidadActual,
-      frecuencia: selectCpFrecuencia?.value || 'MENSUAL',
-      plazo_cuotas: modalidadActual === 'PAGO_UNICO' ? 1 : (parseInt(selectCpCuotas.value, 10) || 1)
-    };
+    clientes.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      tr.innerHTML = `
+        <td style="padding: 10px; color: #cbd5e1;">${c.dni}</td>
+        <td style="padding: 10px; font-weight: bold; color: #fff;">${c.nombre}</td>
+        <td style="padding: 10px; color: #cbd5e1;">${c.telefono}</td>
+        <td style="padding: 10px; color: #cbd5e1;">${c.direccion && c.direccion.trim() !== '' ? c.direccion : '-'}</td>
+        <td style="padding: 10px; text-align: center; white-space: nowrap;">
+          <button type="button" class="btn-editar-fila" style="background:#f39c12; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:6px; font-weight:bold;">✏️ EDITAR</button>
+          <button type="button" class="btn-eliminar-fila" style="background:#ef4444; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
+        </td>
+      `;
 
-    try {
-      const res = await fetch('/api/prestamos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      tr.querySelector('.btn-editar-fila').addEventListener('click', () => cargarClienteParaEditar(c));
+      tr.querySelector('.btn-eliminar-fila').addEventListener('click', () => eliminarCliente(c.id, c.nombre));
 
-      const data = await res.json();
-      if (res.ok) {
-        alert('¡Préstamo registrado exitosamente en la base de datos!');
-        e.target.reset();
-        if (inputCpDni) inputCpDni.value = '';
-        if (inputCpCelular) inputCpCelular.value = '';
-        if (inputCpFecha) inputCpFecha.value = hoyStr;
-        if (inputCpTotalDevolver) inputCpTotalDevolver.value = 'S/ 0.00';
-        if (inputCpEstimada) inputCpEstimada.value = 'S/ 0.00';
-        calcularProximoVencimiento();
-      } else {
-        alert('Error al registrar préstamo: ' + (data.error || 'Problema en el servidor'));
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error de conexión con el servidor');
-    }
-  });
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error al listar clientes:', err);
+  }
+}
 
-  // --- CONTROL DEL REGISTRO DE CLIENTES ---
-  const modalCliente = document.getElementById('modal-nuevo-cliente');
-  const btnNuevoCliente = document.getElementById('btn-nuevo-cliente'); // Tu botón "+ Nuevo Cliente"
-  const btnCerrarModalCli = document.getElementById('btn-cerrar-modal-cli');
-  const formRegistroCliente = document.getElementById('form-registro-cliente');
-  const selectTipoDoc = document.getElementById('cli-tipo-doc');
-  const inputNumDoc = document.getElementById('cli-num-doc');
+function cargarClienteParaEditar(c) {
+  const hiddenId = document.getElementById('cli-edit-id');
+  if (hiddenId) hiddenId.value = c.id;
 
-  btnNuevoCliente?.addEventListener('click', () => {
-    modalCliente?.classList.remove('hidden');
-  });
+  if (document.getElementById('cli-tipo-doc')) document.getElementById('cli-tipo-doc').value = c.tipo_doc || 'DNI';
+  if (document.getElementById('cli-num-doc')) document.getElementById('cli-num-doc').value = c.dni || '';
+  if (document.getElementById('cli-nombre')) document.getElementById('cli-nombre').value = c.nombre || '';
+  if (document.getElementById('cli-telefono')) document.getElementById('cli-telefono').value = c.telefono || '';
+  if (document.getElementById('cli-telefono-ref')) document.getElementById('cli-telefono-ref').value = c.telefono_ref || '';
+  if (document.getElementById('cli-direccion')) document.getElementById('cli-direccion').value = c.direccion || '';
+  if (document.getElementById('cli-observaciones')) document.getElementById('cli-observaciones').value = c.observaciones || '';
 
-  btnCerrarModalCli?.addEventListener('click', () => {
-    modalCliente?.classList.add('hidden');
-    formRegistroCliente?.reset();
-  });
+  const btnGuardar = document.getElementById('btn-guardar-cliente') || document.querySelector('#form-registro-cliente button[type="submit"]');
+  if (btnGuardar) {
+    btnGuardar.textContent = 'ACTUALIZAR CLIENTE';
+    btnGuardar.style.background = '#f39c12';
+  }
 
-  // Ajustar límite de dígitos según DNI (8) o RUC (11)
-  selectTipoDoc?.addEventListener('change', (e) => {
-    if (e.target.value === 'DNI') {
-      inputNumDoc.maxLength = 8;
-      inputNumDoc.placeholder = '8 dígitos';
+  document.getElementById('mod-buscar-cliente')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function eliminarCliente(id, nombre) {
+  if (!confirm(`¿Estás seguro de eliminar a "${nombre}"?`)) return;
+
+  try {
+    const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('Cliente eliminado correctamente.');
+      renderizarTablaClientes();
+      if (typeof cargarClientesEnSelector === 'function') cargarClientesEnSelector();
+      if (typeof cargarClientesEnPagosDirecto === 'function') cargarClientesEnPagosDirecto();
     } else {
-      inputNumDoc.maxLength = 11;
-      inputNumDoc.placeholder = '11 dígitos';
+      alert('Aviso: ' + (data.error || 'No se pudo eliminar'));
     }
-  });
+  } catch (err) {
+    alert('Error al conectar con el servidor.');
+  }
+}
 
-  // Envío del nuevo cliente a la BD
-  formRegistroCliente?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+function limpiarFormularioCliente() {
+  document.getElementById('form-registro-cliente')?.reset();
+  const hiddenId = document.getElementById('cli-edit-id');
+  if (hiddenId) hiddenId.value = '';
 
-    const payload = {
-      tipo_doc: selectTipoDoc.value,
-      dni: inputNumDoc.value,
-      nombre: document.getElementById('cli-nombre').value,
-      telefono: document.getElementById('cli-telefono').value,
-      telefono_ref: document.getElementById('cli-telefono-ref')?.value || '',
-      direccion: document.getElementById('cli-direccion')?.value || '',
-      observaciones: document.getElementById('cli-observaciones')?.value || ''
-    };
+  const btnGuardar = document.getElementById('btn-guardar-cliente') || document.querySelector('#form-registro-cliente button[type="submit"]');
+  if (btnGuardar) {
+    btnGuardar.textContent = 'GUARDAR CLIENTE';
+    btnGuardar.style.background = '';
+  }
+}
 
-    try {
-      const res = await fetch('/api/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+document.getElementById('form-registro-cliente')?.addEventListener('submit', procesarFormularioCliente);
+document.getElementById('btn-cancelar-cliente')?.addEventListener('click', limpiarFormularioCliente);
+document.getElementById('btn-atras-clientes')?.addEventListener('click', () => {
+  document.getElementById('mod-buscar-cliente')?.classList.add('hidden');
+  document.getElementById('menu-grid')?.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.querySelector('[data-target="mod-buscar-cliente"]')?.addEventListener('click', () => {
+  renderizarTablaClientes();
+});
 
-      const data = await res.json();
+// ==========================================================================
+// MÓDULO 2: TABLA Y CRUD DE PRÉSTAMOS (ÚNICO SUBMIT SIN DUPLICAR)
+// ==========================================================================
+async function renderizarTablaPrestamos() {
+  const tbody = document.getElementById('tabla-prestamos-body');
+  if (!tbody) return;
 
-      if (res.ok) {
-        alert('¡Cliente registrado con éxito!');
-        formRegistroCliente.reset();
-        modalCliente.classList.add('hidden');
-        cargarClientesEnSelector(); // Actualiza en vivo el selector del módulo Préstamos
-      } else {
-        alert('Error: ' + (data.error || 'No se pudo registrar el cliente'));
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error de conexión con el servidor.');
+  try {
+    const res = await fetch('/api/prestamos');
+    const prestamos = await res.json();
+    tbody.innerHTML = '';
+
+    if (!Array.isArray(prestamos) || prestamos.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#94a3b8;">No hay préstamos registrados aún.</td></tr>';
+      return;
     }
-  });
-  // Botón ATRÁS para volver al menú principal desde Clientes
-  document.getElementById('btn-atras-clientes')?.addEventListener('click', () => {
-    document.getElementById('mod-buscar-cliente')?.classList.add('hidden');
-    document.getElementById('menu-grid')?.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+
+    prestamos.forEach((p, index) => {
+      const correlativo = index + 1;
+      const fechaVenc = p.fecha_vencimiento ? p.fecha_vencimiento.split('T')[0] : '-';
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      tr.innerHTML = `
+        <td style="padding: 10px; color: #94a3b8; font-weight: bold;">#${correlativo}</td>
+        <td style="padding: 10px; font-weight: bold; color: #fff;">${p.cliente_nombre || 'Cliente #' + p.cliente_id}</td>
+        <td style="padding: 10px; color: #cbd5e1;">S/ ${parseFloat(p.monto || 0).toFixed(2)}</td>
+        <td style="padding: 10px; color: #cbd5e1;">S/ ${parseFloat(p.monto_total || 0).toFixed(2)}</td>
+        <td style="padding: 10px; color: #38bdf8; font-weight: bold;">S/ ${parseFloat(p.saldo_actual || p.monto_total || 0).toFixed(2)}</td>
+        <td style="padding: 10px; color: #f59e0b;">${fechaVenc}</td>
+        <td style="padding: 10px;"><span style="background: rgba(16,185,129,0.2); color:#10b981; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${p.estado || 'ACTIVO'}</span></td>
+        <td style="padding: 10px; text-align: center; white-space: nowrap;">
+          <button type="button" class="btn-editar-pres" style="background:#f39c12; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:6px; font-weight:bold;">✏️ EDITAR</button>
+          <button type="button" class="btn-eliminar-pres" style="background:#ef4444; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">🗑️</button>
+        </td>
+      `;
+
+      tr.querySelector('.btn-editar-pres').addEventListener('click', () => cargarPrestamoParaEditar(p));
+      tr.querySelector('.btn-eliminar-pres').addEventListener('click', () => eliminarPrestamo(p.id));
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error al renderizar préstamos:', err);
+  }
+}
+
+// Cargar tabla al inicio
+renderizarTablaPrestamos();
+
+// 1. Guardar (POST) o Actualizar (PUT) - ÚNICO EVENTO
+document.getElementById('form-nuevo-prestamo')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const selectCliente = document.getElementById('cp-cliente-select');
+  if (!selectCliente || !selectCliente.value) {
+    alert('Por favor selecciona un cliente de la lista.');
+    return;
+  }
+
+  const hiddenId = document.getElementById('prestamo-edit-id');
+  const editId = hiddenId && hiddenId.value.trim() !== '' ? hiddenId.value.trim() : null;
+
+  const modalidad = document.querySelector('input[name="modalidad_pago"]:checked')?.value || 'PROGRAMADO';
+  const monto = parseFloat(document.getElementById('cp-monto')?.value) || 0;
+  const tasa = parseFloat(document.getElementById('cp-interes')?.value) || 0;
+  const cuotas = modalidad === 'PAGO_UNICO' ? 1 : (parseInt(document.getElementById('cp-cuotas')?.value, 10) || 1);
+
+  const inputTotal = document.getElementById('cp-total-devolver');
+  const montoTotal = inputTotal 
+    ? parseFloat(inputTotal.value.replace(/[^0-9.-]+/g, '')) 
+    : (monto + (monto * (tasa / 100)));
+
+  const payload = {
+    cliente_id: parseInt(selectCliente.value, 10),
+    monto: monto,
+    tasa_interes: tasa,
+    fecha_prestamo: document.getElementById('cp-fecha')?.value,
+    fecha_vencimiento: document.getElementById('cp-fecha-vencimiento')?.value,
+    modalidad: modalidad,
+    frecuencia: document.getElementById('cp-frecuencia')?.value || 'MENSUAL',
+    cuotas: cuotas,
+    monto_total: montoTotal
+  };
+
+  const url = editId ? `/api/prestamos/${editId}` : '/api/prestamos';
+  const method = editId ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    
+    const data = await res.json();
+    if (res.ok) {
+      alert(editId ? '¡Préstamo actualizado exitosamente!' : '¡Préstamo registrado exitosamente!');
+      limpiarFormularioPrestamo();
+      renderizarTablaPrestamos();
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo procesar la solicitud'));
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error al conectar con el servidor.');
+  }
+});
+
+// 2. Subir datos al formulario para editar
+function cargarPrestamoParaEditar(p) {
+  let hiddenId = document.getElementById('prestamo-edit-id');
+  if (!hiddenId) {
+    hiddenId = document.createElement('input');
+    hiddenId.type = 'hidden';
+    hiddenId.id = 'prestamo-edit-id';
+    document.getElementById('form-nuevo-prestamo')?.appendChild(hiddenId);
+  }
+  hiddenId.value = String(p.id);
+
+  const selectCliente = document.getElementById('cp-cliente-select');
+  if (selectCliente) {
+    selectCliente.value = p.cliente_id;
+    selectCliente.dispatchEvent(new Event('change'));
+  }
+
+  if (document.getElementById('cp-monto')) document.getElementById('cp-monto').value = p.monto;
+  if (document.getElementById('cp-interes')) document.getElementById('cp-interes').value = p.tasa_interes;
+  if (document.getElementById('cp-fecha')) document.getElementById('cp-fecha').value = p.fecha_prestamo ? p.fecha_prestamo.split('T')[0] : '';
+  if (document.getElementById('cp-fecha-vencimiento')) document.getElementById('cp-fecha-vencimiento').value = p.fecha_vencimiento ? p.fecha_vencimiento.split('T')[0] : '';
+  if (document.getElementById('cp-frecuencia')) document.getElementById('cp-frecuencia').value = p.frecuencia || 'MENSUAL';
+  if (document.getElementById('cp-cuotas')) document.getElementById('cp-cuotas').value = p.cuotas || 1;
+
+  const radioMod = document.querySelector(`input[name="modalidad_pago"][value="${p.modalidad}"]`);
+  if (radioMod) {
+    radioMod.checked = true;
+    radioMod.dispatchEvent(new Event('change'));
+  }
+
+  const btnGuardar = document.querySelector('#form-nuevo-prestamo button[type="submit"]');
+  if (btnGuardar) {
+    btnGuardar.textContent = 'ACTUALIZAR PRÉSTAMO';
+    btnGuardar.style.background = '#f39c12';
+  }
+
+  if (typeof calcularTotalesPrestamo === 'function') calcularTotalesPrestamo();
+  document.getElementById('mod-crear-prestamo')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 3. Eliminar préstamo
+async function eliminarPrestamo(id) {
+  if (!confirm(`¿Estás seguro de eliminar el préstamo #${id}?`)) return;
+
+  try {
+    const res = await fetch(`/api/prestamos/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('Préstamo eliminado exitosamente');
+      renderizarTablaPrestamos();
+    } else {
+      alert('Aviso: ' + (data.error || 'No se pudo eliminar'));
+    }
+  } catch (err) {
+    alert('Error al conectar con el servidor.');
+  }
+}
+
+// 4. Limpiar Formulario completamente
+function limpiarFormularioPrestamo() {
+  document.getElementById('form-nuevo-prestamo')?.reset();
+
+  const hiddenId = document.getElementById('prestamo-edit-id');
+  if (hiddenId) hiddenId.value = '';
+
+  const btnGuardar = document.querySelector('#form-nuevo-prestamo button[type="submit"]');
+  if (btnGuardar) {
+    btnGuardar.textContent = 'GUARDAR PRÉSTAMO';
+    btnGuardar.style.background = '';
+  }
+
+  if (document.getElementById('cp-dni')) document.getElementById('cp-dni').value = '';
+  if (document.getElementById('cp-celular')) document.getElementById('cp-celular').value = '';
+  if (document.getElementById('cp-total-devolver')) document.getElementById('cp-total-devolver').value = 'S/ 0.00';
+  if (document.getElementById('cp-cuota-estimada')) document.getElementById('cp-cuota-estimada').value = 'S/ 0.00';
+  if (typeof hoyStr !== 'undefined' && document.getElementById('cp-fecha')) document.getElementById('cp-fecha').value = hoyStr;
+  if (typeof calcularProximoVencimiento === 'function') calcularProximoVencimiento();
+}
+
+// Botones y aperturas de módulo
+document.querySelector('#form-nuevo-prestamo button[type="reset"]')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  limpiarFormularioPrestamo();
+});
+document.getElementById('btn-cancelar-prestamo')?.addEventListener('click', limpiarFormularioPrestamo);
+
+document.querySelector('[data-target="mod-crear-prestamo"]')?.addEventListener('click', () => {
+  renderizarTablaPrestamos();
+});
+});
+
+// ==========================================================================
+// MÓDULO 1: INGRESO DE PAGO (SELECTOR DE CLIENTES Y DEUDAS)
+// ==========================================================================
+async function cargarClientesEnPagosDirecto() {
+  const selPagoCliente = document.getElementById('pago-cliente');
+  if (!selPagoCliente) return;
+
+  try {
+    const res = await fetch('/api/clientes');
+    if (!res.ok) throw new Error('Error al conectar');
+    const clientes = await res.json();
+
+    selPagoCliente.innerHTML = '<option value="">-- Seleccione un cliente --</option>';
+
+    if (!clientes || clientes.length === 0) {
+      selPagoCliente.innerHTML = '<option value="">No hay clientes registrados</option>';
+      return;
+    }
+
+    clientes.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.nombre;
+      selPagoCliente.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Error cargando clientes en pagos:', err);
+    selPagoCliente.innerHTML = '<option value="">Error al cargar clientes</option>';
+  }
+}
+
+// Cargar préstamos activos al elegir un cliente en Pagos
+document.getElementById('pago-cliente')?.addEventListener('change', async (e) => {
+  const clienteId = e.target.value;
+  const selDeuda = document.getElementById('pago-prestamo-deuda');
+  if (!selDeuda) return;
+
+  selDeuda.innerHTML = '<option value="">Cargando préstamos...</option>';
+  selDeuda.disabled = true;
+
+  if (!clienteId) {
+    selDeuda.innerHTML = '<option value="">Primero seleccione un cliente...</option>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/prestamos/cliente/${clienteId}`);
+    const prestamos = await res.json();
+
+    selDeuda.innerHTML = '';
+    if (!prestamos || prestamos.length === 0) {
+      selDeuda.innerHTML = '<option value="">Sin deudas activas</option>';
+      return;
+    }
+
+    selDeuda.innerHTML = '<option value="">Seleccione un préstamo...</option>';
+    prestamos.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `Préstamo #${p.id} - Saldo: S/ ${parseFloat(p.saldo_actual || 0).toFixed(2)}`;
+      selDeuda.appendChild(opt);
+    });
+    selDeuda.disabled = false;
+  } catch (err) {
+    console.error('Error al traer préstamos del cliente:', err);
+    selDeuda.innerHTML = '<option value="">Error al cargar deudas</option>';
+  }
+});
+
+// Disparadores automáticos al abrir el módulo
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-target="mod-ingreso-pago"]') || e.target.closest('#btn-ingreso-pago')) {
+    cargarClientesEnPagosDirecto();
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  cargarClientesEnPagosDirecto();
+});
+
+// Ejecución inmediata
+cargarClientesEnPagosDirecto();
