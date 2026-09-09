@@ -73,6 +73,8 @@
         </div>
       </button>
 
+      
+
       <!-- 5. GESTIÓN DE CLIENTES -->
       <button class="grid-card" data-target="mod-buscar-cliente">
         <div class="card-icon">🔍</div>
@@ -391,17 +393,72 @@
       </div> <!-- Cierre del módulo mod-crear-prestamo -->
 
       <!-- Módulo 3: Consulta Financiero -->
-      <div id="mod-consulta-financiero" class="glass-module hidden">
-        <h2>📊 CONSULTA FINANCIERO</h2>
-        <div class="stats-container">
-          <div class="stat-box green">
-            <span>Total Recaudado</span>
-            <h3>s/0.00</h3>
+      <div id="mod-consulta-financiero" class="glass-module hidden" style="max-width: 1350px !important; width: 95vw !important; margin: 1.5rem auto !important; padding: 2rem !important; box-sizing: border-box !important;">
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          📊 CONSULTA FINANCIERA Y RENTABILIDAD
+        </h2>
+
+        <!-- 1. Cuadros KPI de Rentabilidad -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">CAPITAL PRESTADO</span>
+            <h3 id="cf-capital-prestado" style="color: #38bdf8; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
           </div>
-          <div class="stat-box blue">
-            <span>Total Préstamos</span>
-            <h3>s/0.00</h3>
+
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">TOTAL RECAUDADO</span>
+            <h3 id="cf-total-recaudado" style="color: #10b981; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
           </div>
+
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">POR COBRAR (SALDO)</span>
+            <h3 id="cf-saldo-cobrar" style="color: #f59e0b; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
+          </div>
+
+          <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">GANANCIA EN INTERÉS</span>
+            <h3 id="cf-ganancia-total" style="color: #c084fc; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
+          </div>
+        </div>
+
+        <!-- 2. Barra de Búsqueda, Filtros y Botón Exportar -->
+        <div style="display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+          <input type="text" id="cf-buscador" class="styled-input" placeholder="🔍 Buscar por cliente o DNI..." style="max-width: 320px;">
+          
+          <div style="display: flex; gap: 10px;">
+            <select id="cf-filtro-estado" class="styled-input" style="width: auto;">
+              <option value="TODOS">Todos los Estados</option>
+              <option value="ACTIVO">Solo Activos</option>
+              <option value="CANCELADO">Cancelados / Pagados</option>
+            </select>
+            <button type="button" id="btn-exportar-excel" class="btn-primary" style="background: #059669; border-color: #047857; font-size: 0.85rem;">📥 EXCEL (CSV)</button>
+          </div>
+        </div>
+
+        <!-- 3. Tabla Dinámica de Flujo Financiero -->
+        <div class="table-responsive" style="max-height: 440px; overflow-y: auto;">
+          <table class="styled-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(255,255,255,0.05); color: #00d2ff; text-align: left;">
+                <th style="padding: 10px;">#</th>
+                <th style="padding: 10px;">Cliente</th>
+                <th style="padding: 10px;">Capital</th>
+                <th style="padding: 10px;">Total Devolver</th>
+                <th style="padding: 10px;">Cobrado</th>
+                <th style="padding: 10px;">Saldo Pendiente</th>
+                <th style="padding: 10px;">Ganancia</th>
+                <th style="padding: 10px;">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-financiera-body">
+              <!-- Carga dinámica -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Botón Volver -->
+        <div class="action-footer" style="margin-top: 2rem; display: flex; justify-content: center;">
+          <button type="button" id="btn-atras-financiero" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; min-width: 180px;">ATRÁS</button>
         </div>
       </div>
 
@@ -458,12 +515,13 @@
             </div>
           </div>
 
-          <!-- Botones de Acción centrados -->
-          <!-- Botones de Acción centrados -->
+          
+          
+          <!-- Botones de Acción centrados para CLIENTES -->
           <div class="action-footer" style="margin-top: 2rem; display: flex; gap: 12px; justify-content: center;">
-            <button type="submit" id="btn-guardar-prestamo" class="btn-primary">GUARDAR PRÉSTAMO</button>
-            <button type="button" id="btn-atras-crear" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
-            <button type="button" id="btn-cancelar-prestamo" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
+            <button type="submit" id="btn-guardar-cliente" class="btn-primary">GUARDAR CLIENTE</button>
+            <button type="button" id="btn-atras-cliente" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1;">ATRÁS</button>
+            <button type="button" id="btn-cancelar-cliente" class="btn-primary" style="background: rgba(76, 29, 45, 0.85); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">CANCELAR / LIMPIAR</button>
           </div>
         </form>
 
@@ -491,14 +549,113 @@
       
       
       <!-- Módulo 5: Gráficos y Analítica -->
-      <div id="mod-graficos" class="glass-module hidden">
-        <h2>📈 GRÁFICOS Y ANALISIS</h2>
-        <p class="subtitle" style="margin-bottom: 1.5rem;">Resumen de rendimiento y cartera financiera</p>
-        
-        <div class="charts-container">
-          <div class="chart-box">
-            <canvas id="chartBalance"></canvas>
+      <div id="mod-graficos" class="glass-module hidden" style="max-width: 1350px !important; width: 95vw !important; margin: 1.5rem auto !important; padding: 2rem !important; box-sizing: border-box !important;">
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 0.5rem;">
+          📈 GRÁFICOS Y ANÁLISIS DE RENDIMIENTO
+        </h2>
+        <p style="text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 2rem;">
+          Métricas de cartera activa, flujo mensual y fidelidad de clientes
+        </p>
+
+        <!-- Grilla de 3 Gráficos -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+          
+          <!-- 1. Gráfico Circular: Cartera Vigente -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+            <h3 style="color: #38bdf8; font-size: 1rem; margin-bottom: 1rem; text-align: center;">🎯 ESTADO CARTERA VIGENTE</h3>
+            <div style="position: relative; width: 100%; max-width: 300px; height: 260px;">
+              <canvas id="chart-cartera"></canvas>
+            </div>
+            <p style="color: #64748b; font-size: 0.8rem; margin-top: 10px; text-align: center;">*Excluye préstamos liquidados al 100%</p>
           </div>
+
+          <!-- 2. Gráfico Horizontal: Top Clientes -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 1.5rem;">
+            <h3 style="color: #10b981; font-size: 1rem; margin-bottom: 1rem; text-align: center;">⭐ TOP CLIENTES CUMPLIDOS</h3>
+            <div style="position: relative; width: 100%; height: 260px;">
+              <canvas id="chart-clientes"></canvas>
+            </div>
+            <p style="color: #64748b; font-size: 0.8rem; margin-top: 10px; text-align: center;">*Clientes con mayor monto pagado acumulado</p>
+          </div>
+
+          <!-- 3. Gráfico de Barras: Flujo Mensual (Corregido) -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 1.5rem; width: 100%; box-sizing: border-box;">
+            <h3 style="color: #c084fc; font-size: 1rem; margin-bottom: 1rem; text-align: center;">📊 MOVIMIENTO MENSUAL: PRESTADO VS RECAUDADO</h3>
+            <div style="position: relative; width: 100%; height: 260px;">
+              <canvas id="chart-flujo-mensual" height="260"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Botón Volver al Menú -->
+        <div class="action-footer" style="display: flex; justify-content: center;">
+          <button type="button" id="btn-atras-graficos" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; min-width: 190px;">ATRÁS</button>
+        </div>
+      </div>
+
+      <!-- Módulo 6: Alertas de Cobranza -->
+      <div id="mod-cobranza" class="glass-module hidden">
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          🚨 ALERTAS DE COBRANZA Y VENCIMIENTOS
+        </h2>
+
+        <!-- Contadores Rápidos -->
+        <div class="stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+          <div class="stat-box red" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 1.2rem; border-radius: 12px; text-align: center;">
+            <span style="color: #fca5a5; font-size: 0.85rem; font-weight: bold;">URGENTE / DEMORA </span>
+            <h3 id="contador-rojo" style="color: #ef4444; font-size: 1.8rem; margin-top: 0.5rem;">0</h3>
+          </div>
+          <div class="stat-box yellow" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1.2rem; border-radius: 12px; text-align: center;">
+            <span style="color: #fde68a; font-size: 0.85rem; font-weight: bold;">PRÓXIMO A VENCER </span>
+            <h3 id="contador-amarillo" style="color: #f59e0b; font-size: 1.8rem; margin-top: 0.5rem;">0</h3>
+          </div>
+          <div class="stat-box green" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1.2rem; border-radius: 12px; text-align: center;">
+            <span style="color: #a7f3d0; font-size: 0.85rem; font-weight: bold;">EN PLAZO </span>
+            <h3 id="contador-verde" style="color: #10b981; font-size: 1.8rem; margin-top: 0.5rem;">0</h3>
+          </div>
+        </div>
+
+        <!-- Panel de 2 columnas: Lista y Detalle -->
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); max-height: 480px; overflow-y: auto;" id="lista-cobranzas">
+            <p style="color: #94a3b8; text-align: center;">Cargando cobros pendientes...</p>
+          </div>
+
+          <div id="panel-detalle-cobro" style="background: rgba(15, 23, 42, 0.8); padding: 1.8rem; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="color: var(--accent-cyan); font-size: 1.1rem; margin-bottom: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">FICHA DE COBRANZA</h3>
+              <div id="detalle-info-vacio" style="color: #64748b; text-align: center; margin-top: 3rem;">
+                Selecciona una cuenta de la lista para ver el desglose y opciones de cobro.
+              </div>
+              <div id="detalle-info-contenido" class="hidden" style="display: flex; flex-direction: column; gap: 0.9rem; font-size: 0.9rem;">
+                <div><span style="color: #94a3b8;">Cliente:</span> <strong id="det-cliente" style="color: #fff;">-</strong></div>
+                <div><span style="color: #94a3b8;">Teléfono:</span> <span id="det-telefono" style="color: #fff;">-</span></div>
+                <div><span style="color: #94a3b8;">Tel. Aval/Respaldo:</span> <span id="det-aval" style="color: #fff;">-</span></div>
+                <div><span style="color: #94a3b8;">Fecha Límite:</span> <strong id="det-fecha" style="color: #f59e0b;">-</strong></div>
+                <div><span style="color: #94a3b8;">Saldo Pendiente:</span> <strong id="det-saldo" style="color: #ef4444; font-size: 1.1rem;">-</strong></div>
+              </div>
+            </div>
+
+            <div id="acciones-cobro" class="hidden" style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.5rem;">
+              <div style="display: flex; gap: 0.8rem;">
+                <a id="btn-whatsapp-cobro" target="_blank" class="btn-primary" style="flex: 1; background: #22c55e; border-color: #16a34a; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #fff; cursor: pointer; height: 46px; font-size: 0.8rem;">
+                  💬 WHATSAPP
+                </a>
+                <a id="btn-llamar-cobro" href="#" class="btn-primary" style="flex: 1; background: #0284c7; border-color: #0369a1; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: #fff; cursor: pointer; height: 46px; font-size: 0.8rem;">
+                  📞 LLAMAR
+                </a>
+              </div>
+
+              <button type="button" id="btn-cobrar-directo" class="btn-primary" style="width: 100%; background: #6366f1; border-color: #4f46e5; height: 46px; font-size: 0.85rem;">
+                💳 REGISTRAR ABONO / COBRAR
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-footer" style="margin-top: 2.5rem; display: flex; justify-content: center;">
+          <button type="button" id="btn-atras-cobranza" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; min-width: 190px;">ATRÁS</button>
         </div>
       </div>
 
@@ -564,14 +721,93 @@
                 💳 REGISTRAR ABONO / COBRAR
               </button>
             </div>
+          </div> <!-- Cierre panel-detalle-cobro -->
+
+        </div> <!-- <--- ESTE CIERRE FALTABA (Cierra el grid de 2 columnas: lista y detalle) -->
 
         <!-- Botón Volver -->
         <div class="action-footer" style="margin-top: 2.5rem; display: flex; justify-content: center;">
           <button type="button" id="btn-atras-cobranza" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; min-width: 190px;">ATRÁS</button>
         </div>
+      </div> <!-- Cierre mod-cobranza -->
+<!-- ... aquí termina tu módulo anterior de cobranza ... -->
+        </div> 
       </div>
 
-    </main>
+      <!-- ======================================================== -->
+      <!-- AQUÍ LO PEGAS (PANTALLA DE CONSULTA FINANCIERA)         -->
+      <!-- ======================================================== -->
+      <div id="mod-consulta-financiero" class="glass-module hidden">
+        <h2 style="text-align: center; text-decoration: underline; margin-bottom: 2rem;">
+          📊 CONSULTA FINANCIERA Y BALANCE GENERAL
+        </h2>
+
+        <!-- Cuadros KPI de Rentabilidad y Capital -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.2rem; margin-bottom: 2rem;">
+          <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">CAPITAL PRESTADO</span>
+            <h3 id="cf-capital-prestado" style="color: #38bdf8; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">TOTAL RECAUDADO</span>
+            <h3 id="cf-total-recaudado" style="color: #10b981; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
+          </div>
+
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">POR COBRAR (EN CALLE)</span>
+            <h3 id="cf-saldo-cobrar" style="color: #f59e0b; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
+          </div>
+
+          <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); padding: 1.2rem; border-radius: 10px; text-align: center;">
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: bold;">GANANCIA PROYECTADA</span>
+            <h3 id="cf-ganancia-total" style="color: #c084fc; font-size: 1.6rem; margin-top: 5px;">S/ 0.00</h3>
+          </div>
+        </div>
+
+        <!-- Filtros y Exportación -->
+        <div style="display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+          <input type="text" id="cf-buscador" class="styled-input" placeholder="🔍 Buscar por cliente o DNI..." style="max-width: 320px;">
+          
+          <div style="display: flex; gap: 10px;">
+            <select id="cf-filtro-estado" class="styled-input" style="width: auto;">
+              <option value="TODOS">Todos los Estados</option>
+              <option value="ACTIVO">Solo Activos</option>
+              <option value="CANCELADO">Cancelados / Pagados</option>
+            </select>
+            <button type="button" id="btn-exportar-excel" class="btn-primary" style="background: #059669; border-color: #047857; font-size: 0.85rem;">📥 EXPORTAR EXCEL</button>
+          </div>
+        </div>
+
+        <!-- Tabla Dinámica -->
+        <div class="table-responsive" style="max-height: 440px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+          <table class="styled-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(255,255,255,0.05); color: #00d2ff; text-align: left;">
+                <th style="padding: 10px;">#</th>
+                <th style="padding: 10px;">Cliente</th>
+                <th style="padding: 10px;">Capital</th>
+                <th style="padding: 10px;">Total a Pagar</th>
+                <th style="padding: 10px;">Cobrado</th>
+                <th style="padding: 10px;">Saldo Restante</th>
+                <th style="padding: 10px;">Ganancia Interés</th>
+                <th style="padding: 10px;">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-financiera-body">
+              <!-- Datos inyectados vía JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Botón Volver al Menú -->
+        <div class="action-footer" style="margin-top: 2rem; display: flex; justify-content: center;">
+          <button type="button" id="btn-atras-financiero" class="btn-primary" style="background: rgba(30, 41, 59, 0.85); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; min-width: 190px;">ATRÁS</button>
+        </div>
+      </div>
+      <!-- ======================================================== -->
+
+    </main> <!-- Este es el cierre de tu main que ya existe -->
   </div>
 
   <script src="app.js"></script>

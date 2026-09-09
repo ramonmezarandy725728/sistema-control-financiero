@@ -146,8 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      if (targetId === 'mod-graficos') {
-        renderizarGrafico();
+     if (targetId === 'mod-graficos') {
+        setTimeout(() => {
+          if (typeof inicializarGraficos === 'function') inicializarGraficos();
+        }, 100);
       }
       if (targetId === 'mod-consulta') {
         cargarResumenFinanciero();
@@ -1054,3 +1056,550 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Ejecución inmediata
 cargarClientesEnPagosDirecto();
+
+// ==========================================================================
+// MÓDULO 6: ALERTAS DE COBRANZA Y VENCIMIENTOS (EVENTO Y FICHA REPARADOS)
+// ==========================================================================
+let listaCobranzasDB = [];
+
+async function cargarAlertasCobranza() {
+  const listaContenedor = document.getElementById('lista-cobranzas');
+  const cntRojo = document.getElementById('contador-rojo');
+  const cntAmarillo = document.getElementById('contador-amarillo');
+  const cntVerde = document.getElementById('contador-verde');
+
+  if (listaContenedor) {
+    listaContenedor.innerHTML = '<p style="color: #94a3b8; text-align: center;">Cargando cobros pendientes...</p>';
+  }
+
+  // Restablecer panel de detalle al estado inicial
+  const vacio = document.getElementById('detalle-info-vacio');
+  const contenido = document.getElementById('detalle-info-contenido');
+  const acciones = document.getElementById('acciones-cobro');
+
+  if (vacio) {
+    vacio.classList.remove('hidden');
+    vacio.style.display = 'block';
+  }
+  if (contenido) {
+    contenido.classList.add('hidden');
+    contenido.style.display = 'none';
+  }
+  if (acciones) {
+    acciones.classList.add('hidden');
+    acciones.style.display = 'none';
+  }
+
+  try {
+    const res = await fetch('/api/cobranzas');
+    const cobros = await res.json();
+    listaCobranzasDB = Array.isArray(cobros) ? cobros : [];
+
+    let cRojo = 0;
+    let cAmarillo = 0;
+    let cVerde = 0;
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (listaCobranzasDB.length === 0) {
+      if (listaContenedor) {
+        listaContenedor.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">No hay cuentas pendientes por cobrar 🎉</p>';
+      }
+      if (cntRojo) cntRojo.textContent = '0';
+      if (cntAmarillo) cntAmarillo.textContent = '0';
+      if (cntVerde) cntVerde.textContent = '0';
+      return;
+    }
+
+    let itemsHTML = '';
+
+    listaCobranzasDB.forEach(item => {
+      const fVencStr = item.fecha_vencimiento ? item.fecha_vencimiento.split('T')[0] : '';
+      const fVenc = fVencStr ? new Date(fVencStr + 'T00:00:00') : new Date();
+      
+      const diffTiempo = fVenc.getTime() - hoy.getTime();
+      const diasRestantes = Math.round(diffTiempo / (1000 * 60 * 60 * 24));
+
+      let badgeColor = '#10b981';
+      let badgeTexto = `En plazo (${diasRestantes}d)`;
+      let bordeColor = 'rgba(16, 185, 129, 0.4)';
+
+      if (diasRestantes < 0) {
+        cRojo++;
+        badgeColor = '#ef4444';
+        badgeTexto = `Vencido (${Math.abs(diasRestantes)}d)`;
+        bordeColor = 'rgba(239, 68, 68, 0.5)';
+      } else if (diasRestantes <= 3) {
+        cAmarillo++;
+        badgeColor = '#f59e0b';
+        badgeTexto = diasRestantes === 0 ? '¡VENCE HOY!' : `Vence en ${diasRestantes}d`;
+        bordeColor = 'rgba(245, 158, 11, 0.5)';
+      } else {
+        cVerde++;
+      }
+
+      // Se usa data-id en lugar de onclick inline para evitar colisiones
+      itemsHTML += `
+        <div class="item-cobro-card" data-id="${item.prestamo_id}" style="background: rgba(255,255,255,0.03); border: 1px solid ${bordeColor}; border-left: 5px solid ${badgeColor}; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
+            <strong style="color: #fff; font-size: 0.95rem;">${item.nombre}</strong>
+            <span style="color: ${badgeColor}; font-weight: bold; font-size: 0.8rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;">${badgeTexto}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; color: #94a3b8; pointer-events: none;">
+            <span>Saldo: <b style="color: #38bdf8;">S/ ${parseFloat(item.saldo_actual || 0).toFixed(2)}</b></span>
+            <span>Vence: ${fVencStr}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    if (listaContenedor) {
+      listaContenedor.innerHTML = itemsHTML;
+
+      // Event listener a prueba de fallos para cada tarjeta generada
+      listaContenedor.querySelectorAll('.item-cobro-card').forEach(card => {
+        card.addEventListener('click', () => {
+          // Destacar visualmente la tarjeta activa
+          listaContenedor.querySelectorAll('.item-cobro-card').forEach(c => c.style.background = 'rgba(255,255,255,0.03)');
+          card.style.background = 'rgba(56, 189, 248, 0.15)';
+
+          const prestamoId = card.getAttribute('data-id');
+          mostrarFichaCobranzaDetallada(prestamoId);
+        });
+      });
+    }
+
+    if (cntRojo) cntRojo.textContent = cRojo;
+    if (cntAmarillo) cntAmarillo.textContent = cAmarillo;
+    if (cntVerde) cntVerde.textContent = cVerde;
+
+  } catch (err) {
+    console.error('Error al cargar cobranzas:', err);
+    if (listaContenedor) {
+      listaContenedor.innerHTML = '<p style="color: #ef4444; text-align: center;">Error al cargar las alertas.</p>';
+    }
+  }
+}
+
+// Función encargada de poblar la ficha y mostrar botones
+function mostrarFichaCobranzaDetallada(prestamoId) {
+  // Conversión con Number() para evitar fallas de comparación entre String e Int
+  const item = listaCobranzasDB.find(c => Number(c.prestamo_id) === Number(prestamoId));
+  if (!item) return;
+
+  const vacio = document.getElementById('detalle-info-vacio');
+  const contenido = document.getElementById('detalle-info-contenido');
+  const acciones = document.getElementById('acciones-cobro');
+
+  if (vacio) {
+    vacio.classList.add('hidden');
+    vacio.style.setProperty('display', 'none', 'important');
+  }
+  if (contenido) {
+    contenido.classList.remove('hidden');
+    contenido.style.setProperty('display', 'flex', 'important');
+  }
+  if (acciones) {
+    acciones.classList.remove('hidden');
+    acciones.style.setProperty('display', 'flex', 'important');
+  }
+
+  const fVenc = item.fecha_vencimiento ? item.fecha_vencimiento.split('T')[0] : '-';
+  const saldoFmt = `S/ ${parseFloat(item.saldo_actual || 0).toFixed(2)}`;
+  const numeroTel = item.telefono ? String(item.telefono).replace(/[^0-9]/g, '') : '';
+
+  // Actualizar datos de texto
+  const elCliente = document.getElementById('det-cliente');
+  const elTel = document.getElementById('det-telefono');
+  const elAval = document.getElementById('det-aval');
+  const elFecha = document.getElementById('det-fecha');
+  const elSaldo = document.getElementById('det-saldo');
+
+  if (elCliente) elCliente.textContent = item.nombre || 'Sin nombre';
+  if (elTel) elTel.textContent = item.telefono || 'Sin teléfono';
+  if (elAval) elAval.textContent = item.telefono_ref || 'Sin respaldo';
+  if (elFecha) elFecha.textContent = fVenc;
+  if (elSaldo) elSaldo.textContent = saldoFmt;
+
+  // Botón WhatsApp directo
+  const btnWs = document.getElementById('btn-whatsapp-cobro');
+  if (btnWs) {
+    if (numeroTel.length >= 9) {
+      const mensaje = encodeURIComponent(
+        `Estimado(a) *${item.nombre}*,\n` +
+        `Le saludamos de *Técnico Rojas* para informarle sobre su crédito:\n\n` +
+        `📅 *Vencimiento:* ${fVenc}\n` +
+        `💰 *Saldo Pendiente:* ${saldoFmt}\n\n` +
+        `Por favor, comuníquese con nosotros para coordinar su pago a la brevedad. ¡Muchas gracias!`
+      );
+      btnWs.href = `https://wa.me/51${numeroTel}?text=${mensaje}`;
+      btnWs.style.pointerEvents = 'auto';
+      btnWs.style.opacity = '1';
+    } else {
+      btnWs.removeAttribute('href');
+      btnWs.style.pointerEvents = 'none';
+      btnWs.style.opacity = '0.4';
+    }
+  }
+
+  // Botón Llamar directo
+  const btnTel = document.getElementById('btn-llamar-cobro');
+  if (btnTel) {
+    if (numeroTel) {
+      btnTel.href = `tel:${numeroTel}`;
+      btnTel.style.pointerEvents = 'auto';
+      btnTel.style.opacity = '1';
+    } else {
+      btnTel.removeAttribute('href');
+      btnTel.style.pointerEvents = 'none';
+      btnTel.style.opacity = '0.4';
+    }
+  }
+
+  // Botón Cobrar Directo (Navega al módulo de cobro con cliente preseleccionado)
+  const btnCobrar = document.getElementById('btn-cobrar-directo');
+  if (btnCobrar) {
+    btnCobrar.onclick = () => {
+      document.getElementById('mod-cobranza')?.classList.add('hidden');
+      const modPagos = document.getElementById('mod-ingreso-pago');
+      if (modPagos) {
+        modPagos.classList.remove('hidden');
+        if (typeof cargarClientesEnPagosDirecto === 'function') cargarClientesEnPagosDirecto();
+
+        setTimeout(() => {
+          const selCli = document.getElementById('pago-cliente');
+          if (selCli) {
+            selCli.value = item.cliente_id;
+            selCli.dispatchEvent(new Event('change'));
+          }
+        }, 150);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+  }
+}
+
+
+
+// ==========================================================================
+// MÓDULO: CONSULTA FINANCIERA (CARGA Y RENDER)
+// ==========================================================================
+let datosFinancierosDB = [];
+
+async function cargarConsultaFinanciera() {
+  try {
+    const res = await fetch('/api/reporte-financiero');
+    if (!res.ok) throw new Error('Error al consultar endpoint financiero');
+    const data = await res.json();
+
+    const r = data.resumen || {};
+    const elCap = document.getElementById('cf-capital-prestado');
+    const elRec = document.getElementById('cf-total-recaudado');
+    const elSal = document.getElementById('cf-saldo-cobrar');
+    const elGan = document.getElementById('cf-ganancia-total');
+
+    if (elCap) elCap.textContent = `S/ ${parseFloat(r.capital_prestado || 0).toFixed(2)}`;
+    if (elRec) elRec.textContent = `S/ ${parseFloat(r.total_recaudado || 0).toFixed(2)}`;
+    if (elSal) elSal.textContent = `S/ ${parseFloat(r.saldo_por_cobrar || 0).toFixed(2)}`;
+    if (elGan) elGan.textContent = `S/ ${parseFloat(r.ganancia_proyectada || 0).toFixed(2)}`;
+
+    datosFinancierosDB = Array.isArray(data.prestamos) ? data.prestamos : [];
+    renderizarTablaFinanciera(datosFinancierosDB);
+  } catch (err) {
+    console.error('Error cargando balance financiero:', err);
+  }
+}
+
+function renderizarTablaFinanciera(prestamos) {
+  const tbody = document.getElementById('tabla-financiera-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!prestamos || prestamos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#94a3b8;">No se encontraron préstamos registrados.</td></tr>';
+    return;
+  }
+
+  prestamos.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+
+    const estadoColor = p.estado === 'ACTIVO' ? '#10b981' : '#64748b';
+
+    tr.innerHTML = `
+      <td style="padding: 10px; color: #94a3b8; font-weight: bold;">#${idx + 1}</td>
+      <td style="padding: 10px; font-weight: bold; color: #fff;">${p.cliente_nombre}</td>
+      <td style="padding: 10px; color: #cbd5e1;">S/ ${parseFloat(p.monto || 0).toFixed(2)}</td>
+      <td style="padding: 10px; color: #cbd5e1;">S/ ${parseFloat(p.monto_total || 0).toFixed(2)}</td>
+      <td style="padding: 10px; color: #10b981;">S/ ${parseFloat(p.total_pagado || 0).toFixed(2)}</td>
+      <td style="padding: 10px; color: #f59e0b; font-weight: bold;">S/ ${parseFloat(p.saldo_actual || 0).toFixed(2)}</td>
+      <td style="padding: 10px; color: #c084fc; font-weight: bold;">+S/ ${parseFloat(p.ganancia_estimada || 0).toFixed(2)}</td>
+      <td style="padding: 10px;"><span style="background: rgba(255,255,255,0.05); color:${estadoColor}; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${p.estado}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+// ==========================================================================
+// FILTROS, EXPORTACIÓN Y EVENTOS DE CONSULTA FINANCIERA
+// ==========================================================================
+
+// Buscador en tiempo real y filtro por estado
+function filtrarTablaFinanciera() {
+  const texto = document.getElementById('cf-buscador')?.value.trim().toLowerCase() || '';
+  const estado = document.getElementById('cf-filtro-estado')?.value || 'TODOS';
+
+  const filtrados = datosFinancierosDB.filter(p => {
+    const coincideTexto = p.cliente_nombre.toLowerCase().includes(texto) || 
+                          (p.cliente_dni && p.cliente_dni.includes(texto));
+    const coincideEstado = (estado === 'TODOS') || (p.estado === estado);
+    return coincideTexto && coincideEstado;
+  });
+
+  renderizarTablaFinanciera(filtrados);
+}
+
+document.getElementById('cf-buscador')?.addEventListener('input', filtrarTablaFinanciera);
+document.getElementById('cf-filtro-estado')?.addEventListener('change', filtrarTablaFinanciera);
+
+// Descargar archivo Excel (CSV)
+document.getElementById('btn-exportar-excel')?.addEventListener('click', () => {
+  if (datosFinancierosDB.length === 0) {
+    alert('No hay información disponible para exportar.');
+    return;
+  }
+
+  let csv = 'Correlativo,Cliente,DNI,Capital_Entregado,Total_Pactado,Monto_Cobrado,Saldo_Pendiente,Ganancia_Interes,Estado\n';
+  datosFinancierosDB.forEach((p, idx) => {
+    csv += `${idx + 1},"${p.cliente_nombre}","${p.cliente_dni || ''}",${p.monto},${p.monto_total},${p.total_pagado},${p.saldo_actual},${p.ganancia_estimada},${p.estado}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', `Flujo_Financiero_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+// Botón ATRÁS de Consulta Financiera
+document.getElementById('btn-atras-financiero')?.addEventListener('click', () => {
+  document.getElementById('mod-consulta-financiero')?.classList.add('hidden');
+  document.getElementById('menu-grid')?.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Abrir el módulo desde el menú principal
+document.querySelector('[data-target="mod-consulta-financiero"]')?.addEventListener('click', () => {
+  document.getElementById('menu-grid')?.classList.add('hidden');
+  document.getElementById('mod-consulta-financiero')?.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  cargarConsultaFinanciera();
+});
+
+// ==========================================================================
+// CONTROL DE BOTONES: CLIENTES (LIMPIAR Y ATRÁS)
+// ==========================================================================
+function limpiarFormularioCliente() {
+  document.getElementById('form-registro-cliente')?.reset();
+
+  const hiddenId = document.getElementById('cli-edit-id');
+  if (hiddenId) hiddenId.value = '';
+
+  const btnGuardar = document.getElementById('btn-guardar-cliente') || 
+                     document.querySelector('#form-registro-cliente button[type="submit"]');
+  if (btnGuardar) {
+    btnGuardar.textContent = 'GUARDAR CLIENTE';
+    btnGuardar.style.background = '';
+  }
+}
+
+// Botón Cancelar / Limpiar
+document.getElementById('btn-cancelar-cliente')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  limpiarFormularioCliente();
+});
+
+// Botón ATRÁS
+document.getElementById('btn-atras-cliente')?.addEventListener('click', () => {
+  limpiarFormularioCliente();
+  document.getElementById('mod-buscar-cliente')?.classList.add('hidden');
+  document.getElementById('menu-grid')?.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Botón ATRÁS del módulo de Cobranza
+document.getElementById('btn-atras-cobranza')?.addEventListener('click', () => {
+  document.getElementById('mod-cobranza')?.classList.add('hidden');
+  document.getElementById('menu-grid')?.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Al hacer clic en la tarjeta del Menú Principal
+document.querySelector('[data-target="mod-cobranza"]')?.addEventListener('click', () => {
+  cargarAlertasCobranza();
+});
+
+// ==========================================================================
+// MÓDULO 5: RENDERIZADO DE GRÁFICOS Y ANÁLISIS REALES (CHART.JS + SQL)
+// ==========================================================================
+let chartCarteraInstancia = null;
+let chartClientesInstancia = null;
+let chartFlujoInstancia = null;
+
+async function inicializarGraficos() {
+  try {
+    const res = await fetch('/api/metricas-graficos');
+    if (!res.ok) throw new Error('Error al conectar con endpoint de métricas');
+    const data = await res.json();
+
+    // 1. Gráfico Circular (Cartera Vigente)
+    const canvasCartera = document.getElementById('chart-cartera');
+    if (canvasCartera) {
+      const ctxCartera = canvasCartera.getContext('2d');
+      if (chartCarteraInstancia) chartCarteraInstancia.destroy();
+
+      const saldo = parseFloat(data.cartera.saldo_pendiente || 0);
+      const cobrado = parseFloat(data.cartera.capital_recuperado || 0);
+
+      chartCarteraInstancia = new Chart(ctxCartera, {
+        type: 'doughnut',
+        data: {
+          labels: ['Por Cobrar (Saldo)', 'Recuperado (Abonos)'],
+          datasets: [{
+            data: [saldo, cobrado],
+            backgroundColor: ['#f59e0b', '#10b981'],
+            borderColor: '#0f172a',
+            borderWidth: 2,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 11 } } },
+            tooltip: {
+              callbacks: { label: (ctx) => ` S/ ${Number(ctx.raw || 0).toFixed(2)}` }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Gráfico Horizontal (Top Clientes Cumplidos)
+    const canvasClientes = document.getElementById('chart-clientes');
+    if (canvasClientes) {
+      const ctxClientes = canvasClientes.getContext('2d');
+      if (chartClientesInstancia) chartClientesInstancia.destroy();
+
+      const nombres = data.topClientes.map(c => c.nombre);
+      const montos = data.topClientes.map(c => parseFloat(c.total_pagado || 0));
+
+      chartClientesInstancia = new Chart(ctxClientes, {
+        type: 'bar',
+        data: {
+          labels: nombres.length ? nombres : ['Sin pagos aún'],
+          datasets: [{
+            label: 'Total Pagado (S/)',
+            data: montos.length ? montos : [0],
+            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+            borderColor: '#10b981',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: (ctx) => ` S/ ${Number(ctx.raw || 0).toFixed(2)}` }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#cbd5e1' }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+   // 3. Gráfico Comparativo Mensual
+    const elFlujo = document.getElementById('chart-flujo-mensual');
+    if (elFlujo) {
+      if (chartFlujoInstancia) chartFlujoInstancia.destroy();
+
+      const meses = (data.flujo && data.flujo.meses) ? data.flujo.meses : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set'];
+      const prestamos = (data.flujo && data.flujo.prestamos) ? data.flujo.prestamos : [0, 0, 0, 0, 0, 0, 0, 0, 1500];
+      const recaudado = (data.flujo && data.flujo.recaudado) ? data.flujo.recaudado : [0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+      chartFlujoInstancia = new Chart(elFlujo.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: meses,
+          datasets: [
+            {
+              label: 'Préstamos Emitidos',
+              data: prestamos,
+              backgroundColor: 'rgba(56, 189, 248, 0.75)',
+              borderColor: '#38bdf8',
+              borderWidth: 1,
+              borderRadius: 4
+            },
+            {
+              label: 'Ingresos / Recaudado',
+              data: recaudado,
+              backgroundColor: 'rgba(192, 132, 252, 0.75)',
+              borderColor: '#c084fc',
+              borderWidth: 1,
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { 
+              position: 'top',
+              labels: { color: '#cbd5e1', font: { size: 11 } } 
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.dataset.label}: S/ ${Number(ctx.raw || 0).toFixed(2)}`
+              }
+            }
+          },
+          scales: {
+            x: { 
+              ticks: { color: '#94a3b8' }, 
+              grid: { color: 'rgba(255,255,255,0.05)' } 
+            },
+            y: { 
+              beginAtZero: true,
+              ticks: { color: '#94a3b8' }, 
+              grid: { color: 'rgba(255,255,255,0.05)' } 
+            }
+          }
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error('Error inicializando gráficos:', err);
+  }
+}
+
+// Botón ATRÁS del módulo de Gráficos
+document.getElementById('btn-atras-graficos')?.addEventListener('click', () => {
+  document.getElementById('mod-graficos')?.classList.add('hidden');
+  document.getElementById('menu-grid')?.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});

@@ -1077,3 +1077,19 @@ body.light-theme #mod-cobranza h2,
 body.light-theme #mod-cobranza strong {
   color: #0f172a !important;
 }
+
+/* Forzar expansión del contenedor cuando la consulta financiera esté abierta */
+main:has(#mod-consulta-financiero:not(.hidden)),
+.container:has(#mod-consulta-financiero:not(.hidden)) {
+  max-width: 1400px !important;
+  width: 95% !important;
+}
+
+#mod-consulta-financiero {
+  max-width: 1350px !important;
+  width: 95% !important;
+}
+
+#mod-consulta-financiero .styled-table {
+  width: 100% !important;
+}
