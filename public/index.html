@@ -15,19 +15,18 @@
   <!-- LIENZO DE FONDO ANIMADO -->
   <canvas id="bg-canvas"></canvas>
 
-  <!-- BARRA SUPERIOR ESQUINA IZQUIERDA -->
-  <!-- BARRA SUPERIOR ESQUINA IZQUIERDA -->
+  
+ <!-- BARRA SUPERIOR ESQUINA IZQUIERDA -->
   <nav class="top-bar-left">
-    <button id="btn-global-home" class="btn-topbar">
-      🏠 <span>INICIO</span>
+    <button id="btn-global-home" type="button" class="btn-topbar" onclick="window.irAlInicio(event)">
+      <span style="pointer-events: none;">🏠</span> <span id="btn-home-text" style="pointer-events: none;">INICIO</span>
     </button>
-    <button id="btn-theme-toggle" class="btn-topbar">
+    <button id="btn-theme-toggle" type="button" class="btn-topbar">
       🌙 <span id="theme-text">MODO CLARO</span>
     </button>
-    <button id="btn-logout" class="btn-topbar" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
+    <button id="btn-logout" type="button" class="btn-topbar" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
       🚪 <span>SALIR</span>
     </button>
-  </nav>
   </nav>
 
 <!-- VENTANA MODAL DE INICIO DE SESIÓN -->

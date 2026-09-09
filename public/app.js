@@ -1688,7 +1688,7 @@ window.ejecutarLogin = async function(e) {
   }
 };
 
-// Eventos de teclado (Enter) y clic
+// Eventos de teclado (Enter) y clic para Login
 document.getElementById('form-login')?.addEventListener('submit', window.ejecutarLogin);
 document.getElementById('btn-iniciar-sesion')?.addEventListener('click', window.ejecutarLogin);
 
@@ -1699,11 +1699,46 @@ document.getElementById('login-usuario')?.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') window.ejecutarLogin(e);
 });
 
-// Botón Salir / Cerrar Sesión
+// Botón Salir / Cerrar Sesión (Cierre correcto de llaves)
 document.getElementById('btn-logout')?.addEventListener('click', () => {
   if (confirm('¿Deseas cerrar sesión del sistema?')) {
     localStorage.removeItem('sesion_activa_rojas');
     location.reload();
   }
 });
-    
+
+// ==========================================================================
+// NAVEGACIÓN GLOBAL: REGRESAR AL MENÚ PRINCIPAL (SIN BLOQUEO DE CLICS)
+// ==========================================================================
+window.irAlInicio = function(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // 1. Ocultar todos los módulos limpiando estilos inline que bloquean
+  const modules = document.querySelectorAll('.glass-module');
+  modules.forEach(m => {
+    m.classList.add('hidden');
+    m.style.removeProperty('display'); // Limpia el display inline para que el CSS vuelva a funcionar
+  });
+
+  // 2. Mostrar el menú principal restaurando su flujo normal
+  const menuGrid = document.getElementById('menu-grid');
+  if (menuGrid) {
+    menuGrid.classList.remove('hidden');
+    menuGrid.style.removeProperty('display');
+  }
+
+  // 3. Asegurar que el modal de login no se interponga de forma invisible
+  const modalLogin = document.getElementById('modal-login-overlay');
+  if (modalLogin && localStorage.getItem('sesion_activa_rojas')) {
+    modalLogin.style.display = 'none';
+  }
+
+  // 4. Subir la vista suavemente
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Escuchador directo adicional
+document.getElementById('btn-global-home')?.addEventListener('click', window.irAlInicio);
