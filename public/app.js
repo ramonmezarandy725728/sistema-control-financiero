@@ -1603,10 +1603,11 @@ document.getElementById('btn-atras-graficos')?.addEventListener('click', () => {
 });
 
 // ==========================================================================
-// CONTROL DE ACCESO Y SEGURIDAD (LOGIN / LOGOUT BLINDADO)
+// CONTROL DE ACCESO Y SEGURIDAD (SESIÓN TEMPORAL POR PESTAÑA/NAVEGADOR)
 // ==========================================================================
 function verificarAutenticacion() {
-  const sesion = localStorage.getItem('sesion_activa_rojas');
+  // Ahora usa sessionStorage: se destruye automáticamente al cerrar el navegador
+  const sesion = sessionStorage.getItem('sesion_activa_rojas');
   const modalLogin = document.getElementById('modal-login-overlay');
 
   if (!sesion) {
@@ -1660,7 +1661,11 @@ window.ejecutarLogin = async function(e) {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      localStorage.setItem('sesion_activa_rojas', data.token);
+      // Guardar en sessionStorage (se borra al cerrar ventana/navegador)
+      sessionStorage.setItem('sesion_activa_rojas', data.token);
+
+      // Limpiar por si había quedado algo viejo en localStorage
+      localStorage.removeItem('sesion_activa_rojas');
 
       const modal = document.getElementById('modal-login-overlay');
       if (modal) {
@@ -1688,7 +1693,7 @@ window.ejecutarLogin = async function(e) {
   }
 };
 
-// Eventos de teclado (Enter) y clic para Login
+// Eventos de teclado y clic para el login
 document.getElementById('form-login')?.addEventListener('submit', window.ejecutarLogin);
 document.getElementById('btn-iniciar-sesion')?.addEventListener('click', window.ejecutarLogin);
 
@@ -1699,14 +1704,14 @@ document.getElementById('login-usuario')?.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') window.ejecutarLogin(e);
 });
 
-// Botón Salir / Cerrar Sesión (Cierre correcto de llaves)
+// Botón Salir manual
 document.getElementById('btn-logout')?.addEventListener('click', () => {
   if (confirm('¿Deseas cerrar sesión del sistema?')) {
+    sessionStorage.removeItem('sesion_activa_rojas');
     localStorage.removeItem('sesion_activa_rojas');
     location.reload();
   }
 });
-
 // ==========================================================================
 // NAVEGACIÓN GLOBAL: REGRESAR AL MENÚ PRINCIPAL (SIN BLOQUEO DE CLICS)
 // ==========================================================================
