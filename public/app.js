@@ -157,14 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  btnHome.addEventListener('click', () => {
-    modules.forEach(m => m.classList.add('hidden'));
-    menuGrid.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  btnThemeToggle.addEventListener('click', () => {
-    if (body.classList.contains('dark-theme')) {
+ btnThemeToggle?.addEventListener('click', () => {
+    const isDark = body.classList.contains('dark-theme');
+    
+    if (isDark) {
       body.classList.remove('dark-theme');
       body.classList.add('light-theme');
       btnThemeToggle.innerHTML = '☀️ <span>MODO OSCURO</span>';
@@ -174,8 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
       btnThemeToggle.innerHTML = '🌙 <span>MODO CLARO</span>';
     }
 
-    if (!document.getElementById('mod-graficos').classList.contains('hidden')) {
-      renderizarGrafico();
+    // Redibujar gráficos si el módulo está abierto
+    const modGraf = document.getElementById('mod-graficos');
+    if (modGraf && !modGraf.classList.contains('hidden')) {
+      if (typeof inicializarGraficos === 'function') inicializarGraficos();
     }
   });
 
@@ -1568,7 +1566,7 @@ async function inicializarGraficos() {
           maintainAspectRatio: false,
           plugins: {
             legend: { 
-              position: 'top',
+              position: 'top', 
               labels: { color: '#cbd5e1', font: { size: 11 } } 
             },
             tooltip: {
@@ -1580,10 +1578,10 @@ async function inicializarGraficos() {
           scales: {
             x: { 
               ticks: { color: '#94a3b8' }, 
-              grid: { color: 'rgba(255,255,255,0.05)' } 
+              grid: { color: 'rgba(255,255,255,0.05)' }
             },
             y: { 
-              beginAtZero: true,
+              beginAtZero: true, 
               ticks: { color: '#94a3b8' }, 
               grid: { color: 'rgba(255,255,255,0.05)' } 
             }
@@ -1603,3 +1601,109 @@ document.getElementById('btn-atras-graficos')?.addEventListener('click', () => {
   document.getElementById('menu-grid')?.classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+// ==========================================================================
+// CONTROL DE ACCESO Y SEGURIDAD (LOGIN / LOGOUT BLINDADO)
+// ==========================================================================
+function verificarAutenticacion() {
+  const sesion = localStorage.getItem('sesion_activa_rojas');
+  const modalLogin = document.getElementById('modal-login-overlay');
+
+  if (!sesion) {
+    if (modalLogin) {
+      modalLogin.style.setProperty('display', 'flex', 'important');
+      modalLogin.classList.remove('hidden');
+    }
+  } else {
+    if (modalLogin) {
+      modalLogin.style.setProperty('display', 'none', 'important');
+      modalLogin.classList.add('hidden');
+    }
+  }
+}
+
+verificarAutenticacion();
+
+// Función global de Login
+window.ejecutarLogin = async function(e) {
+  if (e) e.preventDefault();
+
+  const inputUser = document.getElementById('login-usuario');
+  const inputPass = document.getElementById('login-password');
+  const errorMsg = document.getElementById('login-error-msg');
+  const btnSubmit = document.getElementById('btn-iniciar-sesion');
+
+  const usuario = inputUser ? inputUser.value.trim() : '';
+  const password = inputPass ? inputPass.value.trim() : '';
+
+  if (!usuario || !password) {
+    if (errorMsg) {
+      errorMsg.textContent = 'Por favor escribe usuario y contraseña';
+      errorMsg.style.display = 'block';
+    }
+    return;
+  }
+
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (btnSubmit) {
+    btnSubmit.textContent = 'VERIFICANDO...';
+    btnSubmit.disabled = true;
+  }
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      localStorage.setItem('sesion_activa_rojas', data.token);
+
+      const modal = document.getElementById('modal-login-overlay');
+      if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.add('hidden');
+      }
+      if (inputPass) inputPass.value = '';
+    } else {
+      if (errorMsg) {
+        errorMsg.textContent = data.error || 'Usuario o contraseña incorrectos';
+        errorMsg.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    console.error('Error en login:', err);
+    if (errorMsg) {
+      errorMsg.textContent = 'Error al conectar con el servidor';
+      errorMsg.style.display = 'block';
+    }
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.textContent = 'INGRESAR AL SISTEMA';
+      btnSubmit.disabled = false;
+    }
+  }
+};
+
+// Eventos de teclado (Enter) y clic
+document.getElementById('form-login')?.addEventListener('submit', window.ejecutarLogin);
+document.getElementById('btn-iniciar-sesion')?.addEventListener('click', window.ejecutarLogin);
+
+document.getElementById('login-password')?.addEventListener('keyup', (e) => {
+  if (e.key === 'Enter') window.ejecutarLogin(e);
+});
+document.getElementById('login-usuario')?.addEventListener('keyup', (e) => {
+  if (e.key === 'Enter') window.ejecutarLogin(e);
+});
+
+// Botón Salir / Cerrar Sesión
+document.getElementById('btn-logout')?.addEventListener('click', () => {
+  if (confirm('¿Deseas cerrar sesión del sistema?')) {
+    localStorage.removeItem('sesion_activa_rojas');
+    location.reload();
+  }
+});
+    

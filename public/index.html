@@ -16,6 +16,7 @@
   <canvas id="bg-canvas"></canvas>
 
   <!-- BARRA SUPERIOR ESQUINA IZQUIERDA -->
+  <!-- BARRA SUPERIOR ESQUINA IZQUIERDA -->
   <nav class="top-bar-left">
     <button id="btn-global-home" class="btn-topbar">
       🏠 <span>INICIO</span>
@@ -23,7 +24,42 @@
     <button id="btn-theme-toggle" class="btn-topbar">
       🌙 <span id="theme-text">MODO CLARO</span>
     </button>
+    <button id="btn-logout" class="btn-topbar" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
+      🚪 <span>SALIR</span>
+    </button>
   </nav>
+  </nav>
+
+<!-- VENTANA MODAL DE INICIO DE SESIÓN -->
+  <div id="modal-login-overlay" style="position: fixed; inset: 0; background: rgba(5, 10, 20, 0.92); backdrop-filter: blur(12px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 0 35px rgba(56, 189, 248, 0.2); border-radius: 16px; width: 90%; max-width: 420px; padding: 2.5rem; text-align: center; box-sizing: border-box;">
+      
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+      <h2 style="color: #38bdf8; font-family: 'Orbitron', sans-serif; font-size: 1.4rem; letter-spacing: 1px; margin-bottom: 0.5rem;">ACCESO PRIVADO</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 2rem;">Sistema Técnico Rojas</p>
+
+      <form id="form-login" style="display: flex; flex-direction: column; gap: 1.2rem; text-align: left;">
+        <div>
+          <label style="color: #cbd5e1; font-size: 0.8rem; font-weight: bold; display: block; margin-bottom: 6px;">USUARIO</label>
+          <input type="text" id="login-usuario" class="styled-input" placeholder="Ingresa tu usuario" required autocomplete="off" style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #cbd5e1; font-size: 0.8rem; font-weight: bold; display: block; margin-bottom: 6px;">CONTRASEÑA</label>
+          <input type="password" id="login-password" class="styled-input" placeholder="••••••••" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <p id="login-error-msg" style="color: #ef4444; font-size: 0.85rem; text-align: center; margin: 0; display: none;">Usuario o contraseña incorrectos</p>
+
+        <!-- Cambia este botón para que use onclick explícito -->
+        <button type="button" id="btn-iniciar-sesion" class="btn-primary" onclick="window.ejecutarLogin(event)" style="margin-top: 0.5rem; width: 100%; height: 46px; font-weight: bold; letter-spacing: 1px;">
+          INGRESAR AL SISTEMA
+        </button>
+      </form>
+
+    </div>
+  </div>
+
 
   <div class="main-wrapper">
     <!-- Encabezado Principal -->

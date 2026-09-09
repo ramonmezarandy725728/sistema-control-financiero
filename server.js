@@ -459,6 +459,29 @@ app.get('/api/metricas-graficos', async (req, res) => {
 });
 
 // ==========================================
+// RUTA: AUTENTICACIÓN / LOGIN
+// ==========================================
+app.post('/api/login', (req, res) => {
+  const { usuario, password } = req.body;
+
+  const USUARIO_CORRECTO = process.env.ADMIN_USER || 'rojas123';
+  const PASSWORD_CORRECTO = process.env.ADMIN_PASS || '12345678';
+
+  if (usuario === USUARIO_CORRECTO && password === PASSWORD_CORRECTO) {
+    return res.json({ 
+      success: true, 
+      token: 'sesion-activa-tecnico-rojas-' + Date.now(),
+      usuario: 'Técnico Rojas'
+    });
+  }
+
+  return res.status(401).json({ 
+    success: false, 
+    error: 'Credenciales inválidas. Verifica tu usuario y contraseña.' 
+  });
+});
+
+// ==========================================
 // INICIAR SERVIDOR (UNA SOLA VEZ AL FINAL)
 // ==========================================
 app.listen(PORT, () => {
